@@ -7,7 +7,7 @@ import (
 )
 
 func TestParse_Compile(t *testing.T) {
-	node, err := Parse(strings.NewReader("let x = 1"))
+	node, err := Parse(strings.NewReader("let x = 1"), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -22,7 +22,7 @@ func TestParse_Compile(t *testing.T) {
 
 func TestParse_Compile_err(t *testing.T) {
 	want := "go-vimlparser:Parse: vimlparser: E492: Not an editor command: hoge: line 1 col 1"
-	_, err := Parse(strings.NewReader("hoge"))
+	_, err := Parse(strings.NewReader("hoge"), nil)
 	if err != nil {
 		if got := err.Error(); want != got {
 			t.Errorf("Parse(\"hoge\") = %v, want %v", got, want)

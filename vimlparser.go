@@ -9,8 +9,13 @@ import (
 	internal "github.com/haya14busa/go-vimlparser/go"
 )
 
+// ParseOption is option for Parse().
+type ParseOption struct {
+	Neovim bool
+}
+
 // Parse parses Vim script.
-func Parse(r io.Reader) (node *Node, err error) {
+func Parse(r io.Reader, opt *ParseOption) (node *Node, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			node = nil
@@ -20,7 +25,11 @@ func Parse(r io.Reader) (node *Node, err error) {
 	}()
 	lines := readlines(r)
 	reader := internal.NewStringReader(lines)
-	node = newNode(internal.NewVimLParser(false).Parse(reader))
+	neovim := false
+	if opt != nil {
+		neovim = opt.Neovim
+	}
+	node = newNode(internal.NewVimLParser(neovim).Parse(reader))
 	return
 }
 
