@@ -9,8 +9,8 @@ install:
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/golang/lint/golint
   # - go get github.com/mattn/goveralls
-  - git clone -b multiple-packages https://github.com/mattn/goveralls /tmp/goveralls
-  - cd /tmp/goveralls
+  - git clone -b multiple-packages https://github.com/mattn/goveralls $GOPATH/src/github.com/mattn/goveralls
+  - cd $GOPATH/src/github.com/mattn/goveralls
   - go get -d -v -t ./...
   - go install
   - cd -
