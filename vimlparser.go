@@ -20,7 +20,7 @@ func Parse(r io.Reader) (node *Node, err error) {
 	}()
 	lines := readlines(r)
 	reader := internal.NewStringReader(lines)
-	node = newNode(internal.NewVimLParser().Parse(reader))
+	node = newNode(internal.NewVimLParser(false).Parse(reader))
 	return
 }
 
