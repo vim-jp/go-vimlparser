@@ -1,3 +1,12 @@
-# Vim Script Parsers
+# Vim Script Parsers written in Go
 
-TODO: write something.
+[![GoDoc](https://godoc.org/github.com/haya14busa/go-vimlparser?status.svg)](https://godoc.org/github.com/haya14busa/go-vimlparser)
+
+This repository is the fork of https://github.com/ynkdir/vim-vimlparser and it provides Go-ish interface.
+
+### Credit
+
+[@ynkdir](https://github.com/ynkdir) for https://github.com/ynkdir/vim-vimlparser
+
+### :bird: Author
+haya14busa (https://github.com/haya14busa)
