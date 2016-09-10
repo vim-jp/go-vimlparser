@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -9,7 +10,19 @@ import (
 )
 
 func main() {
-	node, err := vimlparser.Parse(os.Stdin)
+	flag.Parse()
+
+	r := os.Stdin
+
+	if p := flag.Arg(0); p != "" {
+		f, err := os.Open(p)
+		if err != nil {
+			log.Fatal(err)
+		}
+		r = f
+	}
+
+	node, err := vimlparser.Parse(r)
 	if err != nil {
 		log.Fatal(err)
 	}
