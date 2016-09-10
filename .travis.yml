@@ -8,15 +8,15 @@ install:
   - go get -d -v -t ./...
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/golang/lint/golint
-  # - go get github.com/mattn/goveralls
-  - git clone -b multiple-packages https://github.com/mattn/goveralls $GOPATH/src/github.com/mattn/goveralls
-  - cd $GOPATH/src/github.com/mattn/goveralls
-  - go get -d -v -t ./...
-  - go install
-  - cd -
+  - go get github.com/mattn/goveralls
+  # - git clone -b multiple-packages https://github.com/mattn/goveralls $GOPATH/src/github.com/mattn/goveralls
+  # - cd $GOPATH/src/github.com/mattn/goveralls
+  # - go get -d -v -t ./...
+  # - go install
+  # - cd -
 
 script:
   - go test -v -race ./...
-  - goveralls -service=travis-ci
+  - goveralls -service=travis-ci -coverpkg=./...
   - go vet ./...
   - golint -set_exit_status .
