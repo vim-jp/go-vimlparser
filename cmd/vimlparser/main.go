@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/haya14busa/vim-vimlparser"
+	"github.com/haya14busa/go-vimlparser"
 )
 
 func main() {

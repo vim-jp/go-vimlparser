@@ -1,6 +1,6 @@
 package vimlparser
 
-import internal "github.com/haya14busa/vim-vimlparser/go"
+import internal "github.com/haya14busa/go-vimlparser/go"
 
 // ExArg represents extra arguments of command.
 type ExArg struct {

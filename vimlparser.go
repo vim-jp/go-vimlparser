@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	internal "github.com/haya14busa/vim-vimlparser/go"
+	internal "github.com/haya14busa/go-vimlparser/go"
 )
 
 // Parse parses Vim script.
