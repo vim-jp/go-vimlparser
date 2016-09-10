@@ -936,7 +936,7 @@ function! s:VimLParser.find_command()
     endif
   endfor
 
-  if self.neovim  
+  if self.neovim
     for x in self.neovim_additional_commands
       if stridx(x.name, name) == 0 && len(name) >= x.minlen
         unlet cmd
@@ -953,7 +953,7 @@ function! s:VimLParser.find_command()
       endif
     endfor
   endif
-  
+
   " FIXME: user defined command
   if (cmd is s:NIL || cmd.name ==# 'Print') && name =~# '^[A-Z]'
     let name .= self.reader.read_alnum()
@@ -1007,7 +1007,7 @@ function! s:VimLParser.parse_argopt()
         let self.ea.bad_char = self.reader.getn(1)
       endif
     elseif s =~# '^++'
-      throw s:Err('E474: Invalid Argument', self.reader.pos())
+      throw s:Err('E474: Invalid Argument', self.reader.getpos())
     else
       break
     endif
