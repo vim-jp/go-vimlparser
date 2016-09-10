@@ -11,6 +11,7 @@ install:
   # - go get github.com/mattn/goveralls
   - git clone -b multiple-packages https://github.com/mattn/goveralls /tmp/goveralls
   - cd /tmp/goveralls
+  - go get -d -v -t ./...
   - go install
   - cd -
 
