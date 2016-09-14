@@ -20,7 +20,7 @@ function! s:generate()
 
   try
     let ast = s:ast()
-    let c = s:GoCompiler.new(g:ImportTypedefs())
+    let c = s:GoCompiler.new(ImportTypedefs())
     let lines = c.compile(ast)
     call writefile(head + lines, gofile)
   catch
