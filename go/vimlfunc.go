@@ -139,7 +139,7 @@ func viml_range(start, end int) []int {
 
 func viml_split(s string, sep string) []string {
 	if sep == `\zs` {
-		var ss []string
+		ss := make([]string, 0, len(s))
 		for _, r := range s {
 			ss = append(ss, string(r))
 		}
