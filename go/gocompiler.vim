@@ -347,7 +347,7 @@ function s:GoCompiler.compile_function(node)
     let [_0, struct, name; _] = matchlist(left, '^\(.*\)\.\(.*\)$')
     if name == 'new'
     \ || (struct == 'ExprTokenizer' && name == 'token')
-    \ || (struct == 'StringReader' && name == 'getpos')
+    \ || (struct == 'StringReader' && (name == 'getpos' || name == '__init__'))
     \ || (struct == 'VimLParser' && (name =~ '\(push\|pop\)_context\|__init__'))
     \ || (struct == 'Compiler' && (
     \        name == '__init__'

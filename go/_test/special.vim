@@ -11,6 +11,10 @@ function! s:ExprTokenizer.token()
   " skip ExprTokenizer.token
 endfunction
 
+function! s:StringReader.__init__()
+  " skip StringReader.__init__
+endfunction
+
 function! s:StringReader.getpos()
   " skip StringReader.getpos
 endfunction

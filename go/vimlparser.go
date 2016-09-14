@@ -2892,40 +2892,6 @@ func (self *LvalueParser) parse_lv9() *VimNode {
 	return node
 }
 
-func (self *StringReader) __init__(lines []string) {
-	var lnum = 0
-	for lnum < len(lines) {
-		var col = 0
-		for _, c := range viml_split(lines[lnum], "\\zs") {
-			self.buf = append(self.buf, c)
-			self.pos = append(self.pos, []interface{}{lnum + 1, col + 1})
-			col += len(c)
-		}
-		for lnum + 1 < len(lines) && viml_eqregh(lines[lnum + 1], "^\\s*\\\\") {
-			var skip = true
-			col = 0
-			for _, c := range viml_split(lines[lnum + 1], "\\zs") {
-				if skip {
-					if c == "\\" {
-						skip = false
-					}
-				} else {
-					self.buf = append(self.buf, c)
-					self.pos = append(self.pos, []interface{}{lnum + 2, col + 1})
-				}
-				col += len(c)
-			}
-			lnum += 1
-		}
-		self.buf = append(self.buf, "<EOL>")
-		self.pos = append(self.pos, []interface{}{lnum + 1, col + 1})
-		lnum += 1
-	}
-	// for <EOF>
-	self.pos = append(self.pos, []interface{}{lnum + 1, 0})
-	self.i = 0
-}
-
 func (self *StringReader) eof() bool {
 	return self.i >= len(self.buf)
 }
