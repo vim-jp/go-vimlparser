@@ -1,7 +1,7 @@
 source ./go/gocompiler.vim
 source ./go/typedefs.vim
 
-call extend(s:, g:ImportGoCompiler())
+call extend(s:, ImportGoCompiler())
 
 function! s:generate()
   let gofile = 'go/vimlparser.go'
@@ -16,7 +16,7 @@ function! s:generate()
 
   try
     let ast = s:ast()
-    let c = s:GoCompiler.new(g:ImportTypedefs())
+    let c = s:GoCompiler.new(ImportTypedefs())
     let lines = c.compile(ast)
     call writefile(head + lines, gofile)
   catch
@@ -28,23 +28,13 @@ function! s:ast() abort
   let vimfile = 'autoload/vimlparser.vim'
   let astfile = 'go/vimlparser.ast.vim'
 
-  let cache = {}
-  if filereadable(astfile)
-    " sandbox return js_decode(readfile(astfile)[0])
-    let cache = js_decode(readfile(astfile)[0])
-    " return deepcopy(cache)
-    " XXX: cache doesn't work.... why...
-  endif
-
   let lines = readfile(vimfile)
   unlet lines[0:index(lines, 'let s:FALSE = 0')]
   unlet lines[index(lines, 'let s:RegexpParser = {}'):-2]
   let r = s:StringReader.new(lines)
   let p = s:VimLParser.new()
   let ast = p.parse(r)
-  echom '(ast == cache) == ' . (ast == cache)
   return ast
-  " return cache
 endfunction
 
 function! s:numtoname(num)

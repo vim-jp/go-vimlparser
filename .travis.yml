@@ -10,9 +10,14 @@ install:
   - go get github.com/golang/lint/golint
   - go get honnef.co/go/unused/cmd/unused
 
+before_script:
+  - vim --cmd version --cmd quit
+
 script:
   - go test -v -race ./...
   - goveralls -service=travis-ci
   - go vet ./...
   - golint -set_exit_status .
   - unused ./...
+  - vim -u NONE -N --cmd "let &rtp .= ',' . getcwd()" -S go/generate.vim -c ":q"
+  - (! git diff | grep '^') # check diff
