@@ -187,7 +187,8 @@ func (self *StringReader) __init__(lines []string) {
 	var lnum = 0
 	for lnum < len(lines) {
 		var col = 0
-		for _, c := range viml_split(lines[lnum], "\\zs") {
+		for _, r := range lines[lnum] {
+			c := string(r)
 			self.buf = append(self.buf, c)
 			self.pos = append(self.pos, pos{lnum: lnum + 1, col: col + 1})
 			col += len(c)
@@ -195,7 +196,8 @@ func (self *StringReader) __init__(lines []string) {
 		for lnum+1 < len(lines) && viml_eqregh(lines[lnum+1], "^\\s*\\\\") {
 			var skip = true
 			col = 0
-			for _, c := range viml_split(lines[lnum+1], "\\zs") {
+			for _, r := range lines[lnum+1] {
+				c := string(r)
 				if skip {
 					if c == "\\" {
 						skip = false
