@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-func recovert(t *testing.T) {
+func recovert(t testing.TB) {
 	if r := recover(); r != nil {
 		t.Errorf("Recovered: %v\n%s", r, debug.Stack())
 	}
@@ -174,6 +174,16 @@ func readlines(path string) ([]string, error) {
 }
 
 func TestVimLParser_VimLParser(t *testing.T) {
+	testParseVimLParser(t)
+}
+
+func BenchmarkVimLParser_VimLParser(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		testParseVimLParser(b)
+	}
+}
+
+func testParseVimLParser(t testing.TB) {
 	defer recovert(t)
 	p, err := build.Default.Import(basePkg, "", build.FindOnly)
 	if err != nil {

@@ -427,55 +427,55 @@ func (self *VimLParser) parse_command_modifiers() {
 		var k = self.reader.read_alpha()
 		var c = self.reader.peekn(1)
 		self.reader.skip_white()
-		if viml_stridx("aboveleft", k) == 0 && viml_len(k) >= 3 {
+		if viml_stridx("aboveleft", k) == 0 && len(k) >= 3 {
 			// abo\%[veleft]
 			modifiers = append(modifiers, map[string]interface{}{"name":"aboveleft"})
-		} else if viml_stridx("belowright", k) == 0 && viml_len(k) >= 3 {
+		} else if viml_stridx("belowright", k) == 0 && len(k) >= 3 {
 			// bel\%[owright]
 			modifiers = append(modifiers, map[string]interface{}{"name":"belowright"})
-		} else if viml_stridx("browse", k) == 0 && viml_len(k) >= 3 {
+		} else if viml_stridx("browse", k) == 0 && len(k) >= 3 {
 			// bro\%[wse]
 			modifiers = append(modifiers, map[string]interface{}{"name":"browse"})
-		} else if viml_stridx("botright", k) == 0 && viml_len(k) >= 2 {
+		} else if viml_stridx("botright", k) == 0 && len(k) >= 2 {
 			// bo\%[tright]
 			modifiers = append(modifiers, map[string]interface{}{"name":"botright"})
-		} else if viml_stridx("confirm", k) == 0 && viml_len(k) >= 4 {
+		} else if viml_stridx("confirm", k) == 0 && len(k) >= 4 {
 			// conf\%[irm]
 			modifiers = append(modifiers, map[string]interface{}{"name":"confirm"})
-		} else if viml_stridx("keepmarks", k) == 0 && viml_len(k) >= 3 {
+		} else if viml_stridx("keepmarks", k) == 0 && len(k) >= 3 {
 			// kee\%[pmarks]
 			modifiers = append(modifiers, map[string]interface{}{"name":"keepmarks"})
-		} else if viml_stridx("keepalt", k) == 0 && viml_len(k) >= 5 {
+		} else if viml_stridx("keepalt", k) == 0 && len(k) >= 5 {
 			// keepa\%[lt]
 			modifiers = append(modifiers, map[string]interface{}{"name":"keepalt"})
-		} else if viml_stridx("keepjumps", k) == 0 && viml_len(k) >= 5 {
+		} else if viml_stridx("keepjumps", k) == 0 && len(k) >= 5 {
 			// keepj\%[umps]
 			modifiers = append(modifiers, map[string]interface{}{"name":"keepjumps"})
-		} else if viml_stridx("keeppatterns", k) == 0 && viml_len(k) >= 5 {
+		} else if viml_stridx("keeppatterns", k) == 0 && len(k) >= 5 {
 			// keepp\%[atterns]
 			modifiers = append(modifiers, map[string]interface{}{"name":"keeppatterns"})
-		} else if viml_stridx("hide", k) == 0 && viml_len(k) >= 3 {
+		} else if viml_stridx("hide", k) == 0 && len(k) >= 3 {
 			//hid\%[e]
 			if self.ends_excmds(c) {
 				break
 			}
 			modifiers = append(modifiers, map[string]interface{}{"name":"hide"})
-		} else if viml_stridx("lockmarks", k) == 0 && viml_len(k) >= 3 {
+		} else if viml_stridx("lockmarks", k) == 0 && len(k) >= 3 {
 			// loc\%[kmarks]
 			modifiers = append(modifiers, map[string]interface{}{"name":"lockmarks"})
-		} else if viml_stridx("leftabove", k) == 0 && viml_len(k) >= 5 {
+		} else if viml_stridx("leftabove", k) == 0 && len(k) >= 5 {
 			// lefta\%[bove]
 			modifiers = append(modifiers, map[string]interface{}{"name":"leftabove"})
-		} else if viml_stridx("noautocmd", k) == 0 && viml_len(k) >= 3 {
+		} else if viml_stridx("noautocmd", k) == 0 && len(k) >= 3 {
 			// noa\%[utocmd]
 			modifiers = append(modifiers, map[string]interface{}{"name":"noautocmd"})
-		} else if viml_stridx("rightbelow", k) == 0 && viml_len(k) >= 6 {
+		} else if viml_stridx("rightbelow", k) == 0 && len(k) >= 6 {
 			//rightb\%[elow]
 			modifiers = append(modifiers, map[string]interface{}{"name":"rightbelow"})
-		} else if viml_stridx("sandbox", k) == 0 && viml_len(k) >= 3 {
+		} else if viml_stridx("sandbox", k) == 0 && len(k) >= 3 {
 			// san\%[dbox]
 			modifiers = append(modifiers, map[string]interface{}{"name":"sandbox"})
-		} else if viml_stridx("silent", k) == 0 && viml_len(k) >= 3 {
+		} else if viml_stridx("silent", k) == 0 && len(k) >= 3 {
 			// sil\%[ent]
 			if c == "!" {
 				self.reader.get()
@@ -490,16 +490,16 @@ func (self *VimLParser) parse_command_modifiers() {
 			} else {
 				modifiers = append(modifiers, map[string]interface{}{"name":"tab"})
 			}
-		} else if viml_stridx("topleft", k) == 0 && viml_len(k) >= 2 {
+		} else if viml_stridx("topleft", k) == 0 && len(k) >= 2 {
 			// to\%[pleft]
 			modifiers = append(modifiers, map[string]interface{}{"name":"topleft"})
-		} else if viml_stridx("unsilent", k) == 0 && viml_len(k) >= 3 {
+		} else if viml_stridx("unsilent", k) == 0 && len(k) >= 3 {
 			// uns\%[ilent]
 			modifiers = append(modifiers, map[string]interface{}{"name":"unsilent"})
-		} else if viml_stridx("vertical", k) == 0 && viml_len(k) >= 4 {
+		} else if viml_stridx("vertical", k) == 0 && len(k) >= 4 {
 			// vert\%[ical]
 			modifiers = append(modifiers, map[string]interface{}{"name":"vertical"})
-		} else if viml_stridx("verbose", k) == 0 && viml_len(k) >= 4 {
+		} else if viml_stridx("verbose", k) == 0 && len(k) >= 4 {
 			// verb\%[ose]
 			if d != "" {
 				modifiers = append(modifiers, map[string]interface{}{"name":"verbose", "count":viml_str2nr(d, 10)})
@@ -803,7 +803,7 @@ func (self *VimLParser) find_command() *Cmd {
 		name = self.reader.read_alpha()
 		if name != "del" && viml_eqregh(name, "\\v^d%[elete][lp]$") {
 			self.reader.seek_set(pos)
-			name = self.reader.getn(viml_len(name) - 1)
+			name = self.reader.getn(len(name) - 1)
 		}
 	}
 	if name == "" {
@@ -814,20 +814,20 @@ func (self *VimLParser) find_command() *Cmd {
 	}
 	var cmd *Cmd = nil
 	for _, x := range builtin_commands {
-		if viml_stridx(x.name, name) == 0 && viml_len(name) >= x.minlen {
+		if viml_stridx(x.name, name) == 0 && len(name) >= x.minlen {
 			cmd = x
 			break
 		}
 	}
 	if self.neovim {
 		for _, x := range neovim_additional_commands {
-			if viml_stridx(x.name, name) == 0 && viml_len(name) >= x.minlen {
+			if viml_stridx(x.name, name) == 0 && len(name) >= x.minlen {
 				cmd = x
 				break
 			}
 		}
 		for _, x := range neovim_removed_commands {
-			if viml_stridx(x.name, name) == 0 && viml_len(name) >= x.minlen {
+			if viml_stridx(x.name, name) == 0 && len(name) >= x.minlen {
 				cmd = nil
 				break
 			}
@@ -2543,7 +2543,7 @@ func (self *ExprParser) parse_expr8() *VimNode {
 					}
 				}
 			}
-			if viml_len(node.rlist) > MAX_FUNC_ARGS {
+			if len(node.rlist) > MAX_FUNC_ARGS {
 				// TODO: funcname E740: Too many arguments for function: %s
 				panic(Err("E740: Too many arguments for function", node.pos))
 			}
@@ -2723,7 +2723,7 @@ func (self *ExprParser) parse_identifier() *VimNode {
 	self.reader.skip_white()
 	var npos = self.reader.getpos()
 	var curly_parts = self.parse_curly_parts()
-	if viml_len(curly_parts) == 1 && curly_parts[0].type_ == NODE_CURLYNAMEPART {
+	if len(curly_parts) == 1 && curly_parts[0].type_ == NODE_CURLYNAMEPART {
 		var node = Node(NODE_IDENTIFIER)
 		node.pos = npos
 		node.value = curly_parts[0].value
@@ -2892,42 +2892,8 @@ func (self *LvalueParser) parse_lv9() *VimNode {
 	return node
 }
 
-func (self *StringReader) __init__(lines []string) {
-	var lnum = 0
-	for lnum < viml_len(lines) {
-		var col = 0
-		for _, c := range viml_split(lines[lnum], "\\zs") {
-			self.buf = append(self.buf, c)
-			self.pos = append(self.pos, []interface{}{lnum + 1, col + 1})
-			col += viml_len(c)
-		}
-		for lnum + 1 < viml_len(lines) && viml_eqregh(lines[lnum + 1], "^\\s*\\\\") {
-			var skip = true
-			col = 0
-			for _, c := range viml_split(lines[lnum + 1], "\\zs") {
-				if skip {
-					if c == "\\" {
-						skip = false
-					}
-				} else {
-					self.buf = append(self.buf, c)
-					self.pos = append(self.pos, []interface{}{lnum + 2, col + 1})
-				}
-				col += viml_len(c)
-			}
-			lnum += 1
-		}
-		self.buf = append(self.buf, "<EOL>")
-		self.pos = append(self.pos, []interface{}{lnum + 1, col + 1})
-		lnum += 1
-	}
-	// for <EOF>
-	self.pos = append(self.pos, []interface{}{lnum + 1, 0})
-	self.i = 0
-}
-
 func (self *StringReader) eof() bool {
-	return self.i >= viml_len(self.buf)
+	return self.i >= len(self.buf)
 }
 
 func (self *StringReader) tell() int {
@@ -2943,25 +2909,25 @@ func (self *StringReader) seek_cur(i int) {
 }
 
 func (self *StringReader) seek_end(i int) {
-	self.i = viml_len(self.buf) + i
+	self.i = len(self.buf) + i
 }
 
 func (self *StringReader) p(i int) string {
-	if self.i >= viml_len(self.buf) {
+	if self.i >= len(self.buf) {
 		return "<EOF>"
 	}
 	return self.buf[self.i + i]
 }
 
 func (self *StringReader) peek() string {
-	if self.i >= viml_len(self.buf) {
+	if self.i >= len(self.buf) {
 		return "<EOF>"
 	}
 	return self.buf[self.i]
 }
 
 func (self *StringReader) get() string {
-	if self.i >= viml_len(self.buf) {
+	if self.i >= len(self.buf) {
 		return "<EOF>"
 	}
 	self.i += 1
@@ -2978,7 +2944,7 @@ func (self *StringReader) peekn(n int) string {
 func (self *StringReader) getn(n int) string {
 	var r = ""
 	var j = 0
-	for self.i < viml_len(self.buf) && (n < 0 || j < n) {
+	for self.i < len(self.buf) && (n < 0 || j < n) {
 		var c = self.buf[self.i]
 		if c == "<EOL>" {
 			break
@@ -3003,7 +2969,7 @@ func (self *StringReader) readline() string {
 func (self *StringReader) getstr(begin *pos, end *pos) string {
 	var r = ""
 	for _, i := range viml_range(begin.i, end.i - 1) {
-		if i >= viml_len(self.buf) {
+		if i >= len(self.buf) {
 			break
 		}
 		var c = self.buf[i]

@@ -167,7 +167,7 @@ func NewLvalueParser(reader *StringReader) *LvalueParser {
 
 type StringReader struct {
 	i   int
-	pos [][]interface{} // (lnum, col int)
+	pos []pos
 	buf []string
 }
 
@@ -177,10 +177,52 @@ func NewStringReader(lines []string) *StringReader {
 	return obj
 }
 
+func (self *StringReader) __init__(lines []string) {
+	size := 0
+	for _, l := range lines {
+		size += len(l) + 1 // +1 for EOL
+	}
+	self.buf = make([]string, 0, size)
+	self.pos = make([]pos, 0, size+1) // +1 for EOF
+	var lnum = 0
+	for lnum < len(lines) {
+		var col = 0
+		for _, r := range lines[lnum] {
+			c := string(r)
+			self.buf = append(self.buf, c)
+			self.pos = append(self.pos, pos{lnum: lnum + 1, col: col + 1})
+			col += len(c)
+		}
+		for lnum+1 < len(lines) && viml_eqregh(lines[lnum+1], "^\\s*\\\\") {
+			var skip = true
+			col = 0
+			for _, r := range lines[lnum+1] {
+				c := string(r)
+				if skip {
+					if c == "\\" {
+						skip = false
+					}
+				} else {
+					self.buf = append(self.buf, c)
+					self.pos = append(self.pos, pos{lnum: lnum + 2, col: col + 1})
+				}
+				col += len(c)
+			}
+			lnum += 1
+		}
+		self.buf = append(self.buf, "<EOL>")
+		self.pos = append(self.pos, pos{lnum: lnum + 1, col: col + 1})
+		lnum += 1
+	}
+	// for <EOF>
+	self.pos = append(self.pos, pos{lnum: lnum + 1, col: 0})
+	self.i = 0
+}
+
 func (self *StringReader) getpos() *pos {
-	var p = self.pos[self.i]
-	var lnum, col = p[0].(int), p[1].(int)
-	return &pos{i: self.i, lnum: lnum, col: col}
+	p := self.pos[self.i]
+	p.i = self.i
+	return &p
 }
 
 type Compiler struct {
@@ -200,7 +242,7 @@ func (self *Compiler) __init__() {
 }
 
 func (self *Compiler) out(f string, args ...interface{}) {
-	if viml_len(args) == 0 {
+	if len(args) == 0 {
 		if string(f[0]) == ")" {
 			self.lines[len(self.lines)-1] += f
 		} else {

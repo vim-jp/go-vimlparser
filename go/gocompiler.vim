@@ -347,7 +347,7 @@ function s:GoCompiler.compile_function(node)
     let [_0, struct, name; _] = matchlist(left, '^\(.*\)\.\(.*\)$')
     if name == 'new'
     \ || (struct == 'ExprTokenizer' && name == 'token')
-    \ || (struct == 'StringReader' && name == 'getpos')
+    \ || (struct == 'StringReader' && (name == 'getpos' || name == '__init__'))
     \ || (struct == 'VimLParser' && (name =~ '\(push\|pop\)_context\|__init__'))
     \ || (struct == 'Compiler' && (
     \        name == '__init__'
@@ -871,6 +871,8 @@ function s:GoCompiler.compile_call(node)
   if index(s:viml_builtin_functions, left) != -1
     if left == 'add'
       let left = 'append'
+    elseif left == 'len'
+      let left = 'len'
     else
       let left = printf('viml_%s', left)
     endif
