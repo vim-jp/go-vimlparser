@@ -1,9 +1,5 @@
-echom 'start!'
-
 source ./go/gocompiler.vim
 source ./go/typedefs.vim
-
-echom 'sourced'
 
 call extend(s:, ImportGoCompiler())
 
