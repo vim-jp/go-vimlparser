@@ -1,7 +1,11 @@
+echom 'start!'
+
 source ./go/gocompiler.vim
 source ./go/typedefs.vim
 
-call extend(s:, g:ImportGoCompiler())
+echom 'sourced'
+
+call extend(s:, ImportGoCompiler())
 
 function! s:generate()
   let gofile = 'go/vimlparser.go'
