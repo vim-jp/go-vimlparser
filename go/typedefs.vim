@@ -321,6 +321,7 @@ call extend(s:typedefs.func, {
 \   'Compiler.compile_reg': { 'in': ['*VimNode'], 'out': ['string'] },
 \   'Compiler.compile_curlynamepart': { 'in': ['*VimNode'], 'out': ['string'] },
 \   'Compiler.compile_curlynameexpr': { 'in': ['*VimNode'], 'out': ['string'] },
+\   'Compiler.compile_lambda': { 'in': ['*VimNode'], 'out': ['string'] },
 \ })
 
 function! ImportTypedefs() abort

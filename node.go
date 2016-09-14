@@ -92,4 +92,5 @@ const (
 	NodeReg           = 89
 	NodeCurlynamepart = 90
 	NodeCurlynameexpr = 91
+	NodeLambda        = 92
 )
