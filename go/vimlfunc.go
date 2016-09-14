@@ -77,7 +77,7 @@ func init() {
 type vimlList interface{}
 
 func viml_empty(obj interface{}) bool {
-	return viml_len(obj) == 0
+	return reflect.ValueOf(obj).Len() == 0
 }
 
 func viml_equalci(a, b string) bool {
@@ -123,10 +123,6 @@ func viml_join(lst vimlList, sep string) string {
 		ss = append(ss, fmt.Sprintf("%v", s.Index(i)))
 	}
 	return strings.Join(ss, sep)
-}
-
-func viml_len(obj interface{}) int {
-	return reflect.ValueOf(obj).Len()
 }
 
 func viml_printf(f string, args ...interface{}) string {

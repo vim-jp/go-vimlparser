@@ -871,6 +871,8 @@ function s:GoCompiler.compile_call(node)
   if index(s:viml_builtin_functions, left) != -1
     if left == 'add'
       let left = 'append'
+    elseif left == 'len'
+      let left = 'len'
     else
       let left = printf('viml_%s', left)
     endif

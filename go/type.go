@@ -200,7 +200,7 @@ func (self *Compiler) __init__() {
 }
 
 func (self *Compiler) out(f string, args ...interface{}) {
-	if viml_len(args) == 0 {
+	if len(args) == 0 {
 		if string(f[0]) == ")" {
 			self.lines[len(self.lines)-1] += f
 		} else {
