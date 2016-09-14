@@ -178,6 +178,12 @@ func NewStringReader(lines []string) *StringReader {
 }
 
 func (self *StringReader) __init__(lines []string) {
+	size := 0
+	for _, l := range lines {
+		size += len(l)
+	}
+	self.buf = make([]string, 0, size)
+	self.pos = make([]*pos, 0, size)
 	var lnum = 0
 	for lnum < len(lines) {
 		var col = 0
