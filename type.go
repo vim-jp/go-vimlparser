@@ -100,17 +100,17 @@ func newPos(p *internal.ExportPos) *Pos {
 	}
 }
 
-// Node represents Vim AST node.
-type Node struct {
+// BaseNode represents base Vim AST node.
+type BaseNode struct {
 	Type  int
 	Pos   *Pos
-	Left  *Node
-	Right *Node
-	Cond  *Node
-	Rest  *Node
-	List  []*Node
-	Rlist []*Node
-	Body  []*Node
+	Left  *BaseNode
+	Right *BaseNode
+	Cond  *BaseNode
+	Rest  *BaseNode
+	List  []*BaseNode
+	Rlist []*BaseNode
+	Body  []*BaseNode
 	Op    string
 	Str   string
 	Depth int
@@ -119,46 +119,46 @@ type Node struct {
 	Ea   *ExArg
 	Attr *FuncAttr
 
-	Endfunction *Node
-	Elseif      []*Node
-	Else        *Node
-	Endif       *Node
-	Endwhile    *Node
-	Endfor      *Node
-	Endtry      *Node
+	Endfunction *BaseNode
+	Elseif      []*BaseNode
+	Else        *BaseNode
+	Endif       *BaseNode
+	Endwhile    *BaseNode
+	Endfor      *BaseNode
+	Endtry      *BaseNode
 
-	Catch   []*Node
-	Finally *Node
+	Catch   []*BaseNode
+	Finally *BaseNode
 
 	Pattern string
 	Curly   bool
 }
 
-func newNode(n *internal.ExportNode) *Node {
+func newNode(n *internal.ExportNode) *BaseNode {
 	if n == nil {
 		return nil
 	}
-	var list []*Node
+	var list []*BaseNode
 	for _, n := range n.List {
 		list = append(list, newNode(n))
 	}
-	var rlist []*Node
+	var rlist []*BaseNode
 	for _, n := range n.Rlist {
 		rlist = append(rlist, newNode(n))
 	}
-	var body []*Node
+	var body []*BaseNode
 	for _, n := range n.Body {
 		body = append(body, newNode(n))
 	}
-	var elseif []*Node
+	var elseif []*BaseNode
 	for _, n := range n.Elseif {
 		elseif = append(elseif, newNode(n))
 	}
-	var catch []*Node
+	var catch []*BaseNode
 	for _, n := range n.Catch {
 		catch = append(catch, newNode(n))
 	}
-	return &Node{
+	return &BaseNode{
 		Type:  n.Type,
 		Pos:   newPos(n.Pos),
 		Left:  newNode(n.Left),
@@ -210,7 +210,7 @@ func newFuncAttr(attr *internal.ExportFuncAttr) *FuncAttr {
 	}
 }
 
-func newExportNode(n *Node) *internal.ExportNode {
+func newExportNode(n *BaseNode) *internal.ExportNode {
 	if n == nil {
 		return nil
 	}

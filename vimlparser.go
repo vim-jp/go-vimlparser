@@ -15,7 +15,7 @@ type ParseOption struct {
 }
 
 // Parse parses Vim script.
-func Parse(r io.Reader, opt *ParseOption) (node *Node, err error) {
+func Parse(r io.Reader, opt *ParseOption) (node *BaseNode, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			node = nil
@@ -34,7 +34,7 @@ func Parse(r io.Reader, opt *ParseOption) (node *Node, err error) {
 }
 
 // ParseExpr parses Vim expression.
-func ParseExpr(r io.Reader) (node *Node, err error) {
+func ParseExpr(r io.Reader) (node *BaseNode, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			node = nil
@@ -50,7 +50,7 @@ func ParseExpr(r io.Reader) (node *Node, err error) {
 }
 
 // Compile compiles Vim script AST into S-expression like format.
-func Compile(w io.Writer, node *Node) (err error) {
+func Compile(w io.Writer, node *BaseNode) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("go-vimlparser:Compile: %v", r)
