@@ -63,7 +63,7 @@ type Function struct {
 	Name        Expr        // function name
 	Params      []Ident     // parameters
 	Attr        FuncAttr    // function attributes
-	EndFunction EndFunction // :enddfunction
+	EndFunction EndFunction // :endfunction
 }
 
 type FuncAttr struct {

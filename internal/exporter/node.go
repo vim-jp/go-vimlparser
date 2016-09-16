@@ -11,7 +11,7 @@ import (
 
 // NewNode converts internal node type to ast.Node.
 // n.Type must no be zero value.
-// n.Pos must no be nil.
+// n.Pos must no be nil except TOPLEVEL node.
 func NewNode(n *internal.ExportNode) ast.Node {
 	if n == nil {
 		return nil
