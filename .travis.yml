@@ -19,6 +19,7 @@ script:
   - go vet ./...
   - golint -set_exit_status .
   - golint -set_exit_status ./token
+  - golint -set_exit_status ./compiler
   - golint ./ast
   - unused ./...
   - vim -u NONE -N --cmd "let &rtp .= ',' . getcwd()" -S go/generate.vim -c ":q"

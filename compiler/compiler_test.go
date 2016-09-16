@@ -74,3 +74,22 @@ func testFile(t *testing.T, file, okfile string) {
 		t.Errorf("%v:\ngot:\n%v\nwant:\n%v", file, got, want)
 	}
 }
+
+func BenchmarkCompiler_Compile(b *testing.B) {
+	opt := &vimlparser.ParseOption{Neovim: false}
+	in, err := os.Open("../autoload/vimlparser.vim")
+	if err != nil {
+		b.Fatal(err)
+	}
+	defer in.Close()
+	node, err := vimlparser.ParseFile(in, opt)
+	if err != nil {
+		b.Fatal(err)
+	}
+	c := &Compiler{Config: Config{Indent: "  "}}
+	for i := 0; i < b.N; i++ {
+		if err := c.Compile(ioutil.Discard, node); err != nil {
+			b.Error(err)
+		}
+	}
+}

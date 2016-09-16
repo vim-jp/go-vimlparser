@@ -187,6 +187,7 @@ func NewNode(n *internal.ExportNode) ast.Node {
 		return &ast.For{
 			For:    pos,
 			ExArg:  newExArg(*n.Ea),
+			Body:   newBody(*n),
 			Left:   NewNode(n.Left),
 			List:   newList(*n),
 			Rest:   NewNode(n.Rest),
@@ -287,9 +288,10 @@ func NewNode(n *internal.ExportNode) ast.Node {
 
 	case internal.NODE_TERNARY:
 		return &ast.TernaryExpr{
-			Ternary: pos,
-			Left:    NewNode(n.Left),
-			Right:   NewNode(n.Right),
+			Ternary:   pos,
+			Condition: NewNode(n.Cond),
+			Left:      NewNode(n.Left),
+			Right:     NewNode(n.Right),
 		}
 
 	case internal.NODE_OR, internal.NODE_AND, internal.NODE_EQUAL, internal.NODE_EQUALCI, internal.NODE_EQUALCS,

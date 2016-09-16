@@ -378,9 +378,10 @@ func (f *Execute) Cmd() Cmd { return *f.ExArg.Cmd }
 // vimlparser: TERNARY .cond .left .right
 // Condition ? Left : Right
 type TernaryExpr struct {
-	Ternary Pos // position of starting the :execute
-	Left    Expr
-	Right   Expr
+	Ternary   Pos // position of starting the :execute
+	Condition Expr
+	Left      Expr
+	Right     Expr
 }
 
 func (f *TernaryExpr) Pos() Pos { return f.Ternary }
