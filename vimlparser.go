@@ -6,7 +6,9 @@ import (
 	"io"
 	"strings"
 
+	"github.com/haya14busa/go-vimlparser/ast"
 	internal "github.com/haya14busa/go-vimlparser/go"
+	"github.com/haya14busa/go-vimlparser/internal/exporter"
 )
 
 // ParseOption is option for Parse().
@@ -15,6 +17,25 @@ type ParseOption struct {
 }
 
 // Parse parses Vim script.
+func ParseFile(r io.Reader, opt *ParseOption) (node *ast.File, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			node = nil
+			err = fmt.Errorf("go-vimlparser:Parse: %v", r)
+			// log.Printf("%s", debug.Stack())
+		}
+	}()
+	lines := readlines(r)
+	reader := internal.NewStringReader(lines)
+	neovim := false
+	if opt != nil {
+		neovim = opt.Neovim
+	}
+	node = exporter.NewNode(internal.NewVimLParser(neovim).Parse(reader)).(*ast.File)
+	return
+}
+
+// Parse parses Vim script. TODO: depricated
 func Parse(r io.Reader, opt *ParseOption) (node *BaseNode, err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -33,7 +54,7 @@ func Parse(r io.Reader, opt *ParseOption) (node *BaseNode, err error) {
 	return
 }
 
-// ParseExpr parses Vim expression.
+// ParseExpr parses Vim expression. TODO: depricated
 func ParseExpr(r io.Reader) (node *BaseNode, err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -49,7 +70,7 @@ func ParseExpr(r io.Reader) (node *BaseNode, err error) {
 	return
 }
 
-// Compile compiles Vim script AST into S-expression like format.
+// Compile compiles Vim script AST into S-expression like format. TODO: depricated
 func Compile(w io.Writer, node *BaseNode) (err error) {
 	defer func() {
 		if r := recover(); r != nil {

@@ -2,9 +2,43 @@ package vimlparser
 
 import (
 	"bytes"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
+
+func TestParseFile_can_parse(t *testing.T) {
+	match, err := filepath.Glob("test/test_*.vim")
+	if err != nil {
+		t.Fatal(err)
+	}
+	okErr := "go-vimlparser:Parse: vimlparser:"
+	match = append(match, "autoload/vimlparser.vim")
+	match = append(match, "go/gocompiler.vim")
+	for _, filename := range match {
+		if err := checkParse(t, filename); err != nil && !strings.HasPrefix(err.Error(), okErr) {
+			t.Errorf("%s: %v", filename, err)
+		}
+	}
+}
+
+func checkParse(t testing.TB, filename string) error {
+	in, err := os.Open(filename)
+	if err != nil {
+		t.Error(err)
+	}
+	defer in.Close()
+	_, err = ParseFile(in, nil)
+	return err
+}
+
+func BenchmarkParseFile(b *testing.B) {
+	filename := "autoload/vimlparser.vim"
+	for i := 0; i < b.N; i++ {
+		checkParse(b, filename)
+	}
+}
 
 func TestParse_Compile(t *testing.T) {
 	node, err := Parse(strings.NewReader("let x = 1"), nil)
