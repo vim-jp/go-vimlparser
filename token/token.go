@@ -1,3 +1,5 @@
+// Package token defines constants representing the lexical tokens of Vim script.
+//
 // ref: "go/token"
 package token
 

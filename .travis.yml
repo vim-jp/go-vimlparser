@@ -18,6 +18,8 @@ script:
   - goveralls -service=travis-ci
   - go vet ./...
   - golint -set_exit_status .
+  - golint -set_exit_status ./token
+  - golint ./ast
   - unused ./...
   - vim -u NONE -N --cmd "let &rtp .= ',' . getcwd()" -S go/generate.vim -c ":q"
   - (! git diff | grep '^') # check diff
