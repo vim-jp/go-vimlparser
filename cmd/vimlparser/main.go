@@ -2,11 +2,11 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 
 	"github.com/haya14busa/go-vimlparser"
+	"github.com/haya14busa/go-vimlparser/compiler"
 )
 
 var neovim = flag.Bool("neovim", false, "use neovim parser")
@@ -25,12 +25,12 @@ func main() {
 		r = f
 	}
 
-	node, err := vimlparser.Parse(r, &vimlparser.ParseOption{Neovim: *neovim})
+	node, err := vimlparser.ParseFile(r, &vimlparser.ParseOption{Neovim: *neovim})
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := vimlparser.Compile(os.Stdout, node); err != nil {
+	c := &compiler.Compiler{Config: compiler.Config{Indent: "  "}}
+	if err := c.Compile(os.Stdout, node); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("\n")
 }
