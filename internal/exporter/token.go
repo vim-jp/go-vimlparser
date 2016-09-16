@@ -1,0 +1,94 @@
+package exporter
+
+import (
+	internal "github.com/haya14busa/go-vimlparser/go"
+	"github.com/haya14busa/go-vimlparser/token"
+)
+
+func opToken(nodeType int) token.Token {
+	switch nodeType {
+	case internal.NODE_OR:
+		return token.OROR
+	case internal.NODE_AND:
+		return token.ANDAND
+	case internal.NODE_EQUAL:
+		return token.EQEQ
+	case internal.NODE_EQUALCI:
+		return token.EQEQCI
+	case internal.NODE_EQUALCS:
+		return token.EQEQCS
+	case internal.NODE_NEQUAL:
+		return token.NEQ
+	case internal.NODE_NEQUALCI:
+		return token.NEQCI
+	case internal.NODE_NEQUALCS:
+		return token.NEQCS
+	case internal.NODE_GREATER:
+		return token.GT
+	case internal.NODE_GREATERCI:
+		return token.GTCI
+	case internal.NODE_GREATERCS:
+		return token.GTCS
+	case internal.NODE_GEQUAL:
+		return token.GTEQ
+	case internal.NODE_GEQUALCI:
+		return token.GTEQCI
+	case internal.NODE_GEQUALCS:
+		return token.GTEQCS
+	case internal.NODE_SMALLER:
+		return token.LT
+	case internal.NODE_SMALLERCI:
+		return token.LTCI
+	case internal.NODE_SMALLERCS:
+		return token.LTCS
+	case internal.NODE_SEQUAL:
+		return token.LTEQ
+	case internal.NODE_SEQUALCI:
+		return token.LTEQCI
+	case internal.NODE_SEQUALCS:
+		return token.LTEQCS
+	case internal.NODE_MATCH:
+		return token.MATCH
+	case internal.NODE_MATCHCI:
+		return token.MATCHCI
+	case internal.NODE_MATCHCS:
+		return token.MATCHCS
+	case internal.NODE_NOMATCH:
+		return token.NOMATCH
+	case internal.NODE_NOMATCHCI:
+		return token.NOMATCHCI
+	case internal.NODE_NOMATCHCS:
+		return token.NOMATCHCS
+	case internal.NODE_IS:
+		return token.IS
+	case internal.NODE_ISCI:
+		return token.ISCI
+	case internal.NODE_ISCS:
+		return token.ISCS
+	case internal.NODE_ISNOT:
+		return token.ISNOT
+	case internal.NODE_ISNOTCI:
+		return token.ISNOTCI
+	case internal.NODE_ISNOTCS:
+		return token.ISNOTCS
+	case internal.NODE_ADD:
+		return token.PLUS
+	case internal.NODE_SUBTRACT:
+		return token.MINUS
+	case internal.NODE_CONCAT:
+		return token.DOT
+	case internal.NODE_MULTIPLY:
+		return token.STAR
+	case internal.NODE_DIVIDE:
+		return token.SLASH
+	case internal.NODE_REMAINDER:
+		return token.PERCENT
+	case internal.NODE_NOT:
+		return token.NOT
+	case internal.NODE_MINUS:
+		return token.MINUS
+	case internal.NODE_PLUS:
+		return token.PLUS
+	}
+	return token.ILLEGAL
+}
