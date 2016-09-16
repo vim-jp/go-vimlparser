@@ -34,6 +34,7 @@ func ParseFile(r io.Reader, opt *ParseOption) (node *ast.File, err error) {
 	return
 }
 
+// ParseExpr parses Vim script expression.
 func ParseExpr(r io.Reader) (node ast.Expr, err error) {
 	defer func() {
 		if r := recover(); r != nil {
