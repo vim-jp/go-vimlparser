@@ -53,8 +53,7 @@ func testFile(t *testing.T, file, okfile string) {
 		}
 	}
 	w := new(bytes.Buffer)
-	c := &Compiler{Config: Config{Indent: "  "}}
-	if err := c.Compile(w, node); err != nil {
+	if err := Compile(w, node); err != nil {
 		t.Error(err)
 	}
 
@@ -86,9 +85,8 @@ func BenchmarkCompiler_Compile(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	c := &Compiler{Config: Config{Indent: "  "}}
 	for i := 0; i < b.N; i++ {
-		if err := c.Compile(ioutil.Discard, node); err != nil {
+		if err := Compile(ioutil.Discard, node); err != nil {
 			b.Error(err)
 		}
 	}
