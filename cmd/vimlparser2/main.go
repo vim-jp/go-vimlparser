@@ -9,11 +9,7 @@ import (
 	"github.com/k0kubun/pp"
 )
 
-var neovim = flag.Bool("neovim", false, "use neovim parser")
-
 func main() {
-	flag.Parse()
-
 	r := os.Stdin
 
 	if p := flag.Arg(0); p != "" {
@@ -25,7 +21,7 @@ func main() {
 		r = f
 	}
 
-	node, err := vimlparser.ParseFile(r, &vimlparser.ParseOption{Neovim: *neovim})
+	node, err := vimlparser.ParseFile(r, &vimlparser.ParseOption{Neovim: false})
 	if err != nil {
 		log.Fatal(err)
 	}
