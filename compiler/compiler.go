@@ -73,6 +73,8 @@ func (c *Compiler) compile(node interface{}) error {
 				return err
 			}
 		}
+	case ast.Expr:
+		c.fprint(c.compileExpr(n))
 	}
 	return nil
 }
