@@ -2641,6 +2641,8 @@ func (self *ExprParser) parse_expr9() *VimNode {
 			var token2 = self.tokenizer.peek()
 			lambda = token2.type_ == TOKEN_ARROW || token2.type_ == TOKEN_COMMA
 		}
+		// fallback to dict or {expr} if true
+		var fallback = false
 		if lambda {
 			// lambda {token,...} {->...} {token->...}
 			node = Node(NODE_LAMBDA)
@@ -2690,16 +2692,19 @@ func (self *ExprParser) parse_expr9() *VimNode {
 						panic(Err(viml_printf("unexpected token: %s", token.value), token.pos))
 					}
 				} else {
-					panic(Err(viml_printf("unexpected token: %s", token.value), token.pos))
+					fallback = true
+					break
 				}
 				token = self.tokenizer.get()
 			}
-			node.left = self.parse_expr1()
-			token = self.tokenizer.get()
-			if token.type_ != TOKEN_CCLOSE {
-				panic(Err(viml_printf("unexpected token: %s", token.value), token.pos))
+			if !fallback {
+				node.left = self.parse_expr1()
+				token = self.tokenizer.get()
+				if token.type_ != TOKEN_CCLOSE {
+					panic(Err(viml_printf("unexpected token: %s", token.value), token.pos))
+				}
+				return node
 			}
-			return node
 		}
 		// dict
 		node = Node(NODE_DICT)
