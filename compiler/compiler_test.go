@@ -35,7 +35,7 @@ func TestCompiler_Compile(t *testing.T) {
 	}
 }
 
-const okErrPrefix = "go-vimlparser:Parse: vimlparser: "
+const okErrPrefix = "vimlparser: "
 
 func testFile(t *testing.T, file, okfile string) {
 	opt := &vimlparser.ParseOption{Neovim: strings.Contains(file, "test_neo")}
@@ -44,7 +44,7 @@ func testFile(t *testing.T, file, okfile string) {
 		t.Fatal(err)
 	}
 	defer in.Close()
-	node, err := vimlparser.ParseFile(in, opt)
+	node, err := vimlparser.ParseFile(in, "", opt)
 	if err != nil {
 		if !strings.HasPrefix(err.Error(), okErrPrefix) {
 			t.Error(err)
@@ -81,7 +81,7 @@ func BenchmarkCompiler_Compile(b *testing.B) {
 		b.Fatal(err)
 	}
 	defer in.Close()
-	node, err := vimlparser.ParseFile(in, opt)
+	node, err := vimlparser.ParseFile(in, "", opt)
 	if err != nil {
 		b.Fatal(err)
 	}

@@ -15,7 +15,7 @@ func TestParseFile_can_parse(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	okErr := "go-vimlparser:Parse: vimlparser:"
+	okErr := "vimlparser:"
 	match = append(match, "autoload/vimlparser.vim")
 	match = append(match, "go/gocompiler.vim")
 	for _, filename := range match {
@@ -31,7 +31,7 @@ func checkParse(t testing.TB, filename string) error {
 		t.Error(err)
 	}
 	defer in.Close()
-	_, err = ParseFile(in, nil)
+	_, err = ParseFile(in, "", nil)
 	return err
 }
 
@@ -58,7 +58,7 @@ func TestParseExpr_Compile(t *testing.T) {
 }
 
 func TestParseExpr_Parser_err(t *testing.T) {
-	want := "go-vimlparser:Parse: vimlparser: unexpected token: /: line 1 col 4"
+	want := "vimlparser: unexpected token: /: line 1 col 4"
 	_, err := ParseExpr(strings.NewReader("1 // 2"))
 	if err != nil {
 		if got := err.Error(); want != got {

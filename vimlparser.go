@@ -16,7 +16,8 @@ type ParseOption struct {
 }
 
 // ParseFile parses Vim script.
-func ParseFile(r io.Reader, opt *ParseOption) (node *ast.File, err error) {
+// filename can be empty.
+func ParseFile(r io.Reader, filename string, opt *ParseOption) (node *ast.File, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			node = nil
