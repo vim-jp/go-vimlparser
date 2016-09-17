@@ -35,6 +35,7 @@ func main() {
 				flag.Usage()
 			}
 			exitCode = 1
+			continue
 		}
 		if err := parseFile(f.Name(), f, os.Stdout, opt); err != nil {
 			fmt.Fprintln(os.Stderr, err)

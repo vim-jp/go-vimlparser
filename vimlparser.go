@@ -10,6 +10,21 @@ import (
 	"github.com/haya14busa/go-vimlparser/internal/exporter"
 )
 
+type ErrVimlParser struct {
+	Filename string
+	Offset   int
+	Line     int
+	Column   int
+	Msg      string
+}
+
+func (e *ErrVimlParser) Error() string {
+	if e.Filename != "" {
+		return fmt.Sprintf("%v:%d:%d: vimlparser: %v", e.Filename, e.Line, e.Column, e.Msg)
+	}
+	return fmt.Sprintf("vimlparser: %v: line %d col %d", e.Msg, e.Line, e.Column)
+}
+
 // ParseOption is option for Parse().
 type ParseOption struct {
 	Neovim bool
@@ -21,7 +36,17 @@ func ParseFile(r io.Reader, filename string, opt *ParseOption) (node *ast.File, 
 	defer func() {
 		if r := recover(); r != nil {
 			node = nil
-			err = fmt.Errorf("%v", r)
+			if e, ok := r.(*internal.ParseError); ok {
+				err = &ErrVimlParser{
+					Filename: filename,
+					Offset:   e.Offset,
+					Line:     e.Line,
+					Column:   e.Column,
+					Msg:      e.Msg,
+				}
+			} else {
+				err = fmt.Errorf("%v", r)
+			}
 			// log.Printf("%s", debug.Stack())
 		}
 	}()

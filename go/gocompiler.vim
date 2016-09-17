@@ -341,7 +341,7 @@ function s:GoCompiler.compile_function(node)
       let out .= ' '
     endif
   endif
-  if left =~ '^\(ExArg\|Node\)$'
+  if left =~ '^\(ExArg\|Node\|Err\)$'
     return
   elseif left =~ '^\(VimLParser\|ExprTokenizer\|ExprParser\|LvalueParser\|StringReader\|Compiler\|RegexpParser\)\.'
     let [_0, struct, name; _] = matchlist(left, '^\(.*\)\.\(.*\)$')
