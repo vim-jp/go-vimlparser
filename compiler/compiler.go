@@ -411,7 +411,7 @@ func (c *Compiler) compileExpr(node ast.Expr) string {
 		}
 		kvs := make([]string, 0, len(n.Entries))
 		for _, e := range n.Entries {
-			kv := fmt.Sprintf("(%s %s)", e.Key.Value, c.compileExpr(e.Value))
+			kv := fmt.Sprintf("(%s %s)", c.compileExpr(e.Key), c.compileExpr(e.Value))
 			kvs = append(kvs, kv)
 		}
 		return fmt.Sprintf("(dict %s)", strings.Join(kvs, " "))
