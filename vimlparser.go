@@ -10,6 +10,7 @@ import (
 	"github.com/haya14busa/go-vimlparser/internal/exporter"
 )
 
+// ErrVimlParser represents VimLParser error.
 type ErrVimlParser struct {
 	Filename string
 	Offset   int
