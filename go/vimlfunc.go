@@ -62,6 +62,7 @@ var patVim2Go = map[string]string{
 	"^[a-z]$":                  "^[a-z]$",
 	"^[vgslabwt]:$\\|^\\([vgslabwt]:\\)\\?[A-Za-z_][0-9A-Za-z_#]*$": "^[vgslabwt]:$|^([vgslabwt]:)?[A-Za-z_][0-9A-Za-z_#]*$",
 	"^[0-7]$": "^[0-7]$",
+	"USERCMD": "USERCMD",
 }
 
 var patVim2GoRegh = make(map[string]*regexp.Regexp)
