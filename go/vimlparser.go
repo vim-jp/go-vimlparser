@@ -2634,8 +2634,14 @@ func (self *ExprParser) parse_expr9() *VimNode {
 		var savepos = self.reader.tell()
 		var nodepos = token.pos
 		token = self.tokenizer.get()
-		var token2 = self.tokenizer.peek()
-		if token.type_ == TOKEN_ARROW || token2.type_ == TOKEN_ARROW || token2.type_ == TOKEN_COMMA {
+		var lambda = token.type_ == TOKEN_ARROW
+		if !lambda && !(token.type_ == TOKEN_SQUOTE || token.type_ == TOKEN_DQUOTE) {
+			// if the token type is stirng, we cannot peek next token and we can
+			// assume it's not lambda.
+			var token2 = self.tokenizer.peek()
+			lambda = token2.type_ == TOKEN_ARROW || token2.type_ == TOKEN_COMMA
+		}
+		if lambda {
 			// lambda {token,...} {->...} {token->...}
 			node = Node(NODE_LAMBDA)
 			node.pos = nodepos
