@@ -76,6 +76,11 @@ func TestParseExpr_Parser_err(t *testing.T) {
 	want := "vimlparser: unexpected token: /: line 1 col 4"
 	_, err := ParseExpr(strings.NewReader("1 // 2"))
 	if err != nil {
+
+		if er, ok := err.(*ErrVimlParser); !ok {
+			t.Errorf("Error type is %T, want %T", er, &ErrVimlParser{})
+		}
+
 		if got := err.Error(); want != got {
 			t.Errorf("ParseExpr(\"1 // 2\") = %v, want %v", got, want)
 		}

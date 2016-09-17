@@ -66,7 +66,16 @@ func ParseExpr(r io.Reader) (node ast.Expr, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			node = nil
-			err = fmt.Errorf("%v", r)
+			if e, ok := r.(*internal.ParseError); ok {
+				err = &ErrVimlParser{
+					Offset: e.Offset,
+					Line:   e.Line,
+					Column: e.Column,
+					Msg:    e.Msg,
+				}
+			} else {
+				err = fmt.Errorf("%v", r)
+			}
 			// log.Printf("%s", debug.Stack())
 		}
 	}()
