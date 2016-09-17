@@ -1,6 +1,9 @@
 package vimlparser
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type ExArg struct {
 	forceit      bool
@@ -296,10 +299,24 @@ func (self *Compiler) compile_dict(n *VimNode) string {
 		kv := nn.([]interface{})
 		value = append(value, "("+self.compile(kv[0].(*VimNode)).(string)+" "+self.compile(kv[1].(*VimNode)).(string)+")")
 	}
-	// var value = viml_map(VimNode.value, "\"(\" . self.compile(v:val[0]) . \" \" . self.compile(v:val[1]) . \")\"")
 	if viml_empty(value) {
 		return "(dict)"
 	} else {
 		return viml_printf("(dict %s)", strings.Join(value, " "))
 	}
+}
+
+type ParseError struct {
+	Offset int
+	Line   int
+	Column int
+	Msg    string
+}
+
+func (e *ParseError) Error() string {
+	return fmt.Sprintf("vimlparser: %s: line %d col %d", e.Msg, e.Line, e.Column)
+}
+
+func Err(msg string, pos *pos) *ParseError {
+	return &ParseError{Offset: pos.i, Line: pos.lnum, Column: pos.col, Msg: msg}
 }

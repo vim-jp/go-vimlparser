@@ -69,6 +69,10 @@ function! s:ExArg()
   " skip ExArg definition
 endfunction
 
+function! s:Err()
+  " skip Err
+endfunction
+
 let self.hoge = 1
 let self.ea.range = 1
 let xxx.x = 1

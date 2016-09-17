@@ -328,10 +328,6 @@ func islower(c string) bool {
 // CURLYNAMEPART .value
 // CURLYNAMEEXPR .value
 // LAMBDA .rlist .left
-func Err(msg string, pos *pos) string {
-	return viml_printf("vimlparser: %s: line %d col %d", msg, pos.lnum, pos.col)
-}
-
 func (self *VimLParser) find_context(type_ int) int {
 	var i = 0
 	for _, node := range self.context {

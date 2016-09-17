@@ -2,10 +2,6 @@
 
 let s:typedefs = {
 \   'func': {
-\     'Err': {
-\       'in': ['string', '*pos'],
-\       'out': ['string'],
-\     },
 \   },
 \ }
 
