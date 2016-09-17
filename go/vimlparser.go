@@ -2631,55 +2631,16 @@ func (self *ExprParser) parse_expr9() *VimNode {
 			}
 		}
 	} else if token.type_ == TOKEN_COPEN {
-		node = Node(-1)
-		var p = token.pos
-		token = self.tokenizer.peek()
-		if token.type_ == TOKEN_CCLOSE {
-			// dict
-			self.tokenizer.get()
-			node = Node(NODE_DICT)
-			node.pos = p
-			node.value = []interface{}{}
-		} else if token.type_ == TOKEN_DQUOTE || token.type_ == TOKEN_SQUOTE {
-			// dict
-			node = Node(NODE_DICT)
-			node.pos = p
-			node.value = []interface{}{}
-			for true {
-				var key = self.parse_expr1()
-				token = self.tokenizer.get()
-				if token.type_ == TOKEN_CCLOSE {
-					if !viml_empty(node.value) {
-						panic(Err(viml_printf("unexpected token: %s", token.value), token.pos))
-					}
-					self.reader.seek_set(pos)
-					node = self.parse_identifier()
-					break
-				}
-				if token.type_ != TOKEN_COLON {
-					panic(Err(viml_printf("unexpected token: %s", token.value), token.pos))
-				}
-				var val = self.parse_expr1()
-				node.value = append(node.value.([]interface{}), []interface{}{key, val})
-				token = self.tokenizer.get()
-				if token.type_ == TOKEN_COMMA {
-					if self.tokenizer.peek().type_ == TOKEN_CCLOSE {
-						self.tokenizer.get()
-						break
-					}
-				} else if token.type_ == TOKEN_CCLOSE {
-					break
-				} else {
-					panic(Err(viml_printf("unexpected token: %s", token.value), token.pos))
-				}
-			}
-		} else {
-			// lambda ref: s:NODE_FUNCTION
+		var savepos = self.reader.tell()
+		var nodepos = token.pos
+		token = self.tokenizer.get()
+		var token2 = self.tokenizer.peek()
+		if token.type_ == TOKEN_ARROW || token2.type_ == TOKEN_ARROW || token2.type_ == TOKEN_COMMA {
+			// lambda {token,...} {->...} {token->...}
 			node = Node(NODE_LAMBDA)
-			node.pos = p
+			node.pos = nodepos
 			var named = map[string]interface{}{}
-			for {
-				token = self.tokenizer.get()
+			for true {
 				if token.type_ == TOKEN_ARROW {
 					break
 				} else if token.type_ == TOKEN_IDENTIFIER {
@@ -2697,19 +2658,11 @@ func (self *ExprParser) parse_expr9() *VimNode {
 						panic(Err("E475: Invalid argument: White space is not allowed before comma", self.reader.getpos()))
 					}
 					token = self.tokenizer.get()
-					// handle curly_parts
-					if token.type_ == TOKEN_COPEN || token.type_ == TOKEN_CCLOSE {
-						if !viml_empty(node.rlist) {
-							panic(Err(viml_printf("unexpected token: %s", token.value), token.pos))
-						}
-						self.reader.seek_set(pos)
-						node = self.parse_identifier()
-						return node
-					}
 					node.rlist = append(node.rlist, varnode)
 					if token.type_ == TOKEN_COMMA {
 						// XXX: Vim allows last comma.  {a, b, -> ...} => OK
-						if self.reader.peekn(2) == "->" {
+						token = self.tokenizer.peek()
+						if token.type_ == TOKEN_ARROW {
 							self.tokenizer.get()
 							break
 						}
@@ -2723,8 +2676,9 @@ func (self *ExprParser) parse_expr9() *VimNode {
 					varnode.pos = token.pos
 					varnode.value = token.value
 					node.rlist = append(node.rlist, varnode)
-					token = self.tokenizer.get()
+					token = self.tokenizer.peek()
 					if token.type_ == TOKEN_ARROW {
+						self.tokenizer.get()
 						break
 					} else {
 						panic(Err(viml_printf("unexpected token: %s", token.value), token.pos))
@@ -2732,13 +2686,54 @@ func (self *ExprParser) parse_expr9() *VimNode {
 				} else {
 					panic(Err(viml_printf("unexpected token: %s", token.value), token.pos))
 				}
+				token = self.tokenizer.get()
 			}
 			node.left = self.parse_expr1()
 			token = self.tokenizer.get()
 			if token.type_ != TOKEN_CCLOSE {
 				panic(Err(viml_printf("unexpected token: %s", token.value), token.pos))
 			}
+			return node
 		}
+		// dict
+		node = Node(NODE_DICT)
+		node.pos = nodepos
+		node.value = []interface{}{}
+		self.reader.seek_set(savepos)
+		token = self.tokenizer.peek()
+		if token.type_ == TOKEN_CCLOSE {
+			self.tokenizer.get()
+			return node
+		}
+		for {
+			var key = self.parse_expr1()
+			token = self.tokenizer.get()
+			if token.type_ == TOKEN_CCLOSE {
+				if !viml_empty(node.value) {
+					panic(Err(viml_printf("unexpected token: %s", token.value), token.pos))
+				}
+				self.reader.seek_set(pos)
+				node = self.parse_identifier()
+				break
+			}
+			if token.type_ != TOKEN_COLON {
+				panic(Err(viml_printf("unexpected token: %s", token.value), token.pos))
+			}
+			var val = self.parse_expr1()
+			node.value = append(node.value.([]interface{}), []interface{}{key, val})
+			token = self.tokenizer.get()
+			if token.type_ == TOKEN_COMMA {
+				if self.tokenizer.peek().type_ == TOKEN_CCLOSE {
+					self.tokenizer.get()
+					break
+				}
+			} else if token.type_ == TOKEN_CCLOSE {
+				break
+			} else {
+				panic(Err(viml_printf("unexpected token: %s", token.value), token.pos))
+			}
+		}
+		return node
 	} else if token.type_ == TOKEN_POPEN {
 		node = self.parse_expr1()
 		token = self.tokenizer.get()
