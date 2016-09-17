@@ -42,6 +42,21 @@ func BenchmarkParseFile(b *testing.B) {
 	}
 }
 
+func TestParseFile_error(t *testing.T) {
+	want := "path/to/filename.go:1:1: vimlparser: E492: Not an editor command: hoge"
+	_, err := ParseFile(strings.NewReader("hoge"), "path/to/filename.go", nil)
+	if err != nil {
+
+		if er, ok := err.(*ErrVimlParser); !ok {
+			t.Errorf("Error type is %T, want %T", er, &ErrVimlParser{})
+		}
+
+		if got := err.Error(); want != got {
+			t.Errorf("ParseFile(\"hoge\") = %v, want %v", got, want)
+		}
+	}
+}
+
 func TestParseExpr_Compile(t *testing.T) {
 	node, err := ParseExpr(strings.NewReader("x + 1"))
 	if err != nil {
