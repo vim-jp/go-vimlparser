@@ -464,7 +464,7 @@ type Dict struct {
 func (c *Dict) Pos() Pos { return c.Lcurlybrace }
 
 type KeyValue struct {
-	Key   BasicLit // string
+	Key   Expr
 	Value Expr
 	// TODO: want Pos data...
 }

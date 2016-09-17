@@ -370,7 +370,7 @@ func NewNode(n *internal.ExportNode) ast.Node {
 			kv := nn.([]interface{})
 			k := NewNode(internal.NewExportNode(kv[0].(*internal.VimNode)))
 			v := NewNode(internal.NewExportNode(kv[1].(*internal.VimNode)))
-			kvs = append(kvs, ast.KeyValue{Key: *k.(*ast.BasicLit), Value: v})
+			kvs = append(kvs, ast.KeyValue{Key: k, Value: v})
 		}
 		return &ast.Dict{
 			Lcurlybrace: pos,
