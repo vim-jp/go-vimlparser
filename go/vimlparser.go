@@ -642,7 +642,7 @@ func (self *VimLParser) parse_command() {
 	} else {
 		self.ea.forceit = false
 	}
-	if !viml_eqregh(self.ea.cmd.flags, "\\<BANG\\>") && self.ea.forceit {
+	if !viml_eqregh(self.ea.cmd.flags, "\\<BANG\\>") && self.ea.forceit && !viml_eqregh(self.ea.cmd.flags, "USERCMD") {
 		panic(Err("E477: No ! allowed", self.ea.cmdpos))
 	}
 	if self.ea.cmd.name != "!" {
