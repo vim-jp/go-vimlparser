@@ -20,7 +20,7 @@ func ParseFile(r io.Reader, opt *ParseOption) (node *ast.File, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			node = nil
-			err = fmt.Errorf("go-vimlparser:Parse: %v", r)
+			err = fmt.Errorf("%v", r)
 			// log.Printf("%s", debug.Stack())
 		}
 	}()
@@ -39,7 +39,7 @@ func ParseExpr(r io.Reader) (node ast.Expr, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			node = nil
-			err = fmt.Errorf("go-vimlparser:Parse: %v", r)
+			err = fmt.Errorf("%v", r)
 			// log.Printf("%s", debug.Stack())
 		}
 	}()
