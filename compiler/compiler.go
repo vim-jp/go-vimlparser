@@ -28,6 +28,11 @@ type Compiler struct {
 }
 
 // Compile compiles node and writes to writer.
+func Compile(w io.Writer, node ast.Node) error {
+	return (&Compiler{Config: Config{Indent: "  "}}).Compile(w, node)
+}
+
+// Compile compiles node and writes to writer.
 func (c *Compiler) Compile(w io.Writer, node ast.Node) error {
 	c.buffer = bytes.NewBuffer(make([]byte, 0))
 	if err := c.compile(node); err != nil {
@@ -58,7 +63,6 @@ func (c *Compiler) trimLineBreak() {
 	c.buffer.Write(new)
 }
 
-// func (c *Compiler) compile(node ast.Node) error {
 func (c *Compiler) compile(node interface{}) error {
 	switch n := node.(type) {
 	case *ast.File:
