@@ -1207,7 +1207,7 @@ func (self *VimLParser) parse_cmd_function() {
 		self.parse_cmd_common()
 		return
 	}
-	// :function[!] {name}([arguments]) [range] [abort] [dict]
+	// :function[!] {name}([arguments]) [range] [abort] [dict] [closure]
 	var node = Node(NODE_FUNCTION)
 	node.pos = self.ea.cmdpos
 	node.ea = self.ea
@@ -1274,6 +1274,8 @@ func (self *VimLParser) parse_cmd_function() {
 			node.attr.abort = true
 		} else if key == "dict" {
 			node.attr.dict = true
+		} else if key == "closure" {
+			node.attr.closure = true
 		} else {
 			panic(Err(viml_printf("unexpected token: %s", key), epos))
 		}

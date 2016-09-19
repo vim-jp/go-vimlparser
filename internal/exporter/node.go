@@ -47,9 +47,10 @@ func NewNode(n *internal.ExportNode) ast.Node {
 		attr := ast.FuncAttr{}
 		if n.Attr != nil {
 			attr = ast.FuncAttr{
-				Range: n.Attr.Range,
-				Abort: n.Attr.Abort,
-				Dict:  n.Attr.Dict,
+				Range:   n.Attr.Range,
+				Abort:   n.Attr.Abort,
+				Dict:    n.Attr.Dict,
+				Closure: n.Attr.Closure,
 			}
 		}
 		return &ast.Function{
