@@ -74,8 +74,12 @@ func Walk(v Visitor, node Node) {
 		for _, elseif := range n.ElseIf {
 			Walk(v, elseif)
 		}
-		Walk(v, n.Else)
-		Walk(v, n.EndIf)
+		if n.Else != nil {
+			Walk(v, n.Else)
+		}
+		if n.EndIf != nil {
+			Walk(v, n.EndIf)
+		}
 
 	case *ElseIf:
 		Walk(v, n.Condition)
@@ -112,8 +116,12 @@ func Walk(v Visitor, node Node) {
 		for _, c := range n.Catch {
 			Walk(v, c)
 		}
-		Walk(v, n.Finally)
-		Walk(v, n.EndTry)
+		if n.Finally != nil {
+			Walk(v, n.Finally)
+		}
+		if n.EndTry != nil {
+			Walk(v, n.EndTry)
+		}
 
 	case *Catch:
 		walkStmtList(v, n.Body)
