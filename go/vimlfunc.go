@@ -66,12 +66,10 @@ var patVim2Go = map[string]string{
 }
 
 var patVim2GoRegh = make(map[string]*regexp.Regexp)
-var patVim2GoRegq = make(map[string]*regexp.Regexp)
 
 func init() {
 	for k, v := range patVim2Go {
 		patVim2GoRegh[k] = regexp.MustCompile(v)
-		patVim2GoRegq[k] = regexp.MustCompile("(?i)" + v)
 	}
 }
 
@@ -84,25 +82,12 @@ func viml_empty(obj interface{}) bool {
 func viml_equalci(a, b string) bool {
 	return strings.ToLower(a) == strings.ToLower(b)
 }
-func viml_eqreg(s, reg string) bool {
-	if r, ok := patVim2GoRegq[reg]; ok {
-		return r.MatchString(s)
-	}
-	panic(fmt.Errorf("NotImplemented viml_eqreg for %v", reg))
-}
 
 func viml_eqregh(s, reg string) bool {
 	if r, ok := patVim2GoRegh[reg]; ok {
 		return r.MatchString(s)
 	}
 	panic("NotImplemented viml_eqregh")
-}
-
-func viml_eqregq(s, reg string) bool {
-	if r, ok := patVim2GoRegq[reg]; ok {
-		return r.MatchString(s)
-	}
-	panic("NotImplemented viml_eqregq")
 }
 
 func viml_escape(s string, chars string) string {
