@@ -374,8 +374,9 @@ func newAstNode(n *VimNode) ast.Node {
 		}
 
 	case NODE_DICT:
-		var kvs []ast.KeyValue
-		for _, nn := range n.value.([]interface{}) {
+		entries := n.value.([]interface{})
+		kvs := make([]ast.KeyValue, 0, len(entries))
+		for _, nn := range entries {
 			kv := nn.([]interface{})
 			k := newAstNode(kv[0].(*VimNode))
 			v := newAstNode(kv[1].(*VimNode))
