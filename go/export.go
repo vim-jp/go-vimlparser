@@ -132,23 +132,23 @@ func NewExportNode(n *VimNode) *ExportNode {
 	if n == nil {
 		return nil
 	}
-	list := make([]*ExportNode, 0)
+	list := make([]*ExportNode, 0, len(n.list))
 	for _, n := range n.list {
 		list = append(list, NewExportNode(n))
 	}
-	rlist := make([]*ExportNode, 0)
+	rlist := make([]*ExportNode, 0, len(n.rlist))
 	for _, n := range n.rlist {
 		rlist = append(rlist, NewExportNode(n))
 	}
-	body := make([]*ExportNode, 0)
+	body := make([]*ExportNode, 0, len(n.body))
 	for _, n := range n.body {
 		body = append(body, NewExportNode(n))
 	}
-	elseif := make([]*ExportNode, 0)
+	elseif := make([]*ExportNode, 0, len(n.elseif))
 	for _, n := range n.elseif {
 		elseif = append(elseif, NewExportNode(n))
 	}
-	catch := make([]*ExportNode, 0)
+	catch := make([]*ExportNode, 0, len(n.catch))
 	for _, n := range n.catch {
 		catch = append(catch, NewExportNode(n))
 	}
@@ -228,23 +228,23 @@ func newInternalNode(n *ExportNode) *VimNode {
 	if n == nil {
 		return nil
 	}
-	list := make([]*VimNode, 0)
+	list := make([]*VimNode, 0, len(n.List))
 	for _, n := range n.List {
 		list = append(list, newInternalNode(n))
 	}
-	rlist := make([]*VimNode, 0)
+	rlist := make([]*VimNode, 0, len(n.Rlist))
 	for _, n := range n.Rlist {
 		rlist = append(rlist, newInternalNode(n))
 	}
-	body := make([]*VimNode, 0)
+	body := make([]*VimNode, 0, len(n.Body))
 	for _, n := range n.Body {
 		body = append(body, newInternalNode(n))
 	}
-	elseif := make([]*VimNode, 0)
+	elseif := make([]*VimNode, 0, len(n.Elseif))
 	for _, n := range n.Elseif {
 		elseif = append(elseif, newInternalNode(n))
 	}
-	catch := make([]*VimNode, 0)
+	catch := make([]*VimNode, 0, len(n.Catch))
 	for _, n := range n.Catch {
 		catch = append(catch, newInternalNode(n))
 	}
