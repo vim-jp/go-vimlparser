@@ -7,7 +7,6 @@ import (
 
 	"github.com/haya14busa/go-vimlparser/ast"
 	internal "github.com/haya14busa/go-vimlparser/go"
-	"github.com/haya14busa/go-vimlparser/internal/exporter"
 )
 
 // ErrVimlParser represents VimLParser error.
@@ -57,7 +56,7 @@ func ParseFile(r io.Reader, filename string, opt *ParseOption) (node *ast.File, 
 	if opt != nil {
 		neovim = opt.Neovim
 	}
-	node = exporter.NewNode(internal.NewVimLParser(neovim).Parse(reader)).(*ast.File)
+	node = internal.NewVimLParser(neovim).Parse(reader).(*ast.File)
 	return
 }
 
@@ -82,7 +81,7 @@ func ParseExpr(r io.Reader) (node ast.Expr, err error) {
 	lines := readlines(r)
 	reader := internal.NewStringReader(lines)
 	p := internal.NewExprParser(reader)
-	node = exporter.NewNode(p.Parse())
+	node = p.Parse()
 	return
 }
 
