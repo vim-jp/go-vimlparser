@@ -41,7 +41,7 @@ func Walk(v Visitor, node Node) {
 		Walk(v, n.Name)
 		walkIdentList(v, n.Params)
 		walkStmtList(v, n.Body)
-		Walk(v, &n.EndFunction)
+		Walk(v, n.EndFunction)
 
 	case *EndFunction: // nothing to do
 
@@ -52,7 +52,7 @@ func Walk(v Visitor, node Node) {
 		Walk(v, n.Result)
 
 	case *ExCall:
-		Walk(v, &n.FuncCall)
+		Walk(v, n.FuncCall)
 
 	case *Let:
 		Walk(v, n.Left)
@@ -72,10 +72,10 @@ func Walk(v Visitor, node Node) {
 	case *If:
 		Walk(v, n.Condition)
 		for _, elseif := range n.ElseIf {
-			Walk(v, &elseif)
+			Walk(v, elseif)
 		}
 		Walk(v, n.Else)
-		Walk(v, &n.EndIf)
+		Walk(v, n.EndIf)
 
 	case *ElseIf:
 		Walk(v, n.Condition)
@@ -89,7 +89,7 @@ func Walk(v Visitor, node Node) {
 	case *While:
 		Walk(v, n.Condition)
 		walkStmtList(v, n.Body)
-		Walk(v, &n.EndWhile)
+		Walk(v, n.EndWhile)
 
 	case *EndWhile: // nothing to do
 
@@ -99,7 +99,7 @@ func Walk(v Visitor, node Node) {
 		Walk(v, n.Rest)
 		Walk(v, n.Right)
 		walkStmtList(v, n.Body)
-		Walk(v, &n.EndFor)
+		Walk(v, n.EndFor)
 
 	case *EndFor: // nothing to do
 
@@ -110,10 +110,10 @@ func Walk(v Visitor, node Node) {
 	case *Try:
 		walkStmtList(v, n.Body)
 		for _, c := range n.Catch {
-			Walk(v, &c)
+			Walk(v, c)
 		}
 		Walk(v, n.Finally)
-		Walk(v, &n.EndTry)
+		Walk(v, n.EndTry)
 
 	case *Catch:
 		walkStmtList(v, n.Body)
@@ -161,7 +161,7 @@ func Walk(v Visitor, node Node) {
 
 	case *DotExpr:
 		Walk(v, n.Left)
-		Walk(v, &n.Right)
+		Walk(v, n.Right)
 
 	case *BasicLit: // nothing to do
 
@@ -197,9 +197,9 @@ func Walk(v Visitor, node Node) {
 
 // Helper functions for common node lists. They may be empty.
 
-func walkIdentList(v Visitor, list []Ident) {
+func walkIdentList(v Visitor, list []*Ident) {
 	for _, x := range list {
-		Walk(v, &x)
+		Walk(v, x)
 	}
 }
 

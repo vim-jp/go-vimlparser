@@ -57,13 +57,13 @@ func (e *Excmd) Cmd() Cmd { return *e.ExArg.Cmd }
 
 // vimlparser: FUNCTION .ea .body .left .rlist .attr .endfunction
 type Function struct {
-	Func        Pos         // position of starting the :function
-	ExArg       ExArg       // Ex command arg
-	Body        []Statement // function body
-	Name        Expr        // function name
-	Params      []Ident     // parameters
-	Attr        FuncAttr    // function attributes
-	EndFunction EndFunction // :endfunction
+	Func        Pos          // position of starting the :function
+	ExArg       ExArg        // Ex command arg
+	Body        []Statement  // function body
+	Name        Expr         // function name
+	Params      []*Ident     // parameters
+	Attr        FuncAttr     // function attributes
+	EndFunction *EndFunction // :endfunction
 }
 
 type FuncAttr struct {
@@ -107,9 +107,9 @@ func (f *Return) Cmd() Cmd { return *f.ExArg.Cmd }
 
 // vimlparser: EXCALL .ea .left
 type ExCall struct {
-	ExCall   Pos      // position of starting the :call
-	ExArg    ExArg    // Ex command arg
-	FuncCall CallExpr // a function call
+	ExCall   Pos       // position of starting the :call
+	ExArg    ExArg     // Ex command arg
+	FuncCall *CallExpr // a function call
 }
 
 func (f *ExCall) Pos() Pos { return f.ExCall }
@@ -175,9 +175,9 @@ type If struct {
 	ExArg     ExArg       // Ex command arg
 	Body      []Statement // body of if statement
 	Condition Expr        // condition
-	ElseIf    []ElseIf
+	ElseIf    []*ElseIf
 	Else      *Else
-	EndIf     EndIf
+	EndIf     *EndIf
 }
 
 func (f *If) Pos() Pos { return f.If }
@@ -219,7 +219,7 @@ type While struct {
 	ExArg     ExArg       // Ex command arg
 	Body      []Statement // body of while statement
 	Condition Expr        // condition
-	EndWhile  EndWhile
+	EndWhile  *EndWhile
 }
 
 func (f *While) Pos() Pos { return f.While }
@@ -251,7 +251,7 @@ type For struct {
 	Rest Expr   // rest of lhs list; or nil
 
 	Right  Expr // rhs expression.
-	EndFor EndFor
+	EndFor *EndFor
 }
 
 func (f *For) Pos() Pos { return f.For }
@@ -289,9 +289,9 @@ type Try struct {
 	Try     Pos         // position of starting the :try
 	ExArg   ExArg       // Ex command arg
 	Body    []Statement // body of try statement
-	Catch   []Catch
+	Catch   []*Catch
 	Finally *Finally
-	EndTry  EndTry
+	EndTry  *EndTry
 }
 
 func (f *Try) Pos() Pos { return f.Try }
@@ -437,7 +437,7 @@ func (c *CallExpr) Pos() Pos { return c.Lparen }
 type DotExpr struct {
 	Left  Expr
 	Dot   Pos // position of "."
-	Right Ident
+	Right *Ident
 }
 
 func (c *DotExpr) Pos() Pos { return c.Dot }
@@ -516,8 +516,8 @@ func (i *Ident) Pos() Pos { return i.NamePos }
 // vimlparsr: LAMBDA .rlist .left
 // { Params -> Expr }
 type LambdaExpr struct {
-	Lcurlybrace Pos     // position of "{"
-	Params      []Ident // parameters
+	Lcurlybrace Pos      // position of "{"
+	Params      []*Ident // parameters
 	Expr        Expr
 }
 

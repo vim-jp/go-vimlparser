@@ -68,7 +68,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			Name:        newAstNode(n.left, filename),
 			Params:      newIdents(*n, filename),
 			Attr:        attr,
-			EndFunction: *newAstNode(n.endfunction, filename).(*ast.EndFunction),
+			EndFunction: newAstNode(n.endfunction, filename).(*ast.EndFunction),
 		}
 
 	case NODE_ENDFUNCTION:
@@ -95,7 +95,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 		return &ast.ExCall{
 			ExCall:   pos,
 			ExArg:    newExArg(*n.ea, filename),
-			FuncCall: *newAstNode(n.left, filename).(*ast.CallExpr),
+			FuncCall: newAstNode(n.left, filename).(*ast.CallExpr),
 		}
 
 	case NODE_LET:
@@ -133,13 +133,13 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 		}
 
 	case NODE_IF:
-		var elifs []ast.ElseIf
+		var elifs []*ast.ElseIf
 		if n.elseif != nil {
-			elifs = make([]ast.ElseIf, 0, len(n.elseif))
+			elifs = make([]*ast.ElseIf, 0, len(n.elseif))
 		}
 		for _, node := range n.elseif {
 			if node != nil { // conservative
-				elifs = append(elifs, *newAstNode(node, filename).(*ast.ElseIf))
+				elifs = append(elifs, newAstNode(node, filename).(*ast.ElseIf))
 			}
 		}
 		var els *ast.Else
@@ -153,7 +153,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			Condition: newAstNode(n.cond, filename),
 			ElseIf:    elifs,
 			Else:      els,
-			EndIf:     *newAstNode(n.endif, filename).(*ast.EndIf),
+			EndIf:     newAstNode(n.endif, filename).(*ast.EndIf),
 		}
 
 	case NODE_ELSEIF:
@@ -183,7 +183,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			ExArg:     newExArg(*n.ea, filename),
 			Body:      newBody(*n, filename),
 			Condition: newAstNode(n.cond, filename),
-			EndWhile:  *newAstNode(n.endwhile, filename).(*ast.EndWhile),
+			EndWhile:  newAstNode(n.endwhile, filename).(*ast.EndWhile),
 		}
 
 	case NODE_ENDWHILE:
@@ -201,7 +201,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			List:   newList(*n, filename),
 			Rest:   newAstNode(n.rest, filename),
 			Right:  newAstNode(n.right, filename),
-			EndFor: *newAstNode(n.endfor, filename).(*ast.EndFor),
+			EndFor: newAstNode(n.endfor, filename).(*ast.EndFor),
 		}
 
 	case NODE_ENDFOR:
@@ -223,13 +223,13 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 		}
 
 	case NODE_TRY:
-		var catches []ast.Catch
+		var catches []*ast.Catch
 		if n.catch != nil {
-			catches = make([]ast.Catch, 0, len(n.catch))
+			catches = make([]*ast.Catch, 0, len(n.catch))
 		}
 		for _, node := range n.catch {
 			if node != nil { // conservative
-				catches = append(catches, *newAstNode(node, filename).(*ast.Catch))
+				catches = append(catches, newAstNode(node, filename).(*ast.Catch))
 			}
 		}
 		var finally *ast.Finally
@@ -242,7 +242,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			Body:    newBody(*n, filename),
 			Catch:   catches,
 			Finally: finally,
-			EndTry:  *newAstNode(n.endtry, filename).(*ast.EndTry),
+			EndTry:  newAstNode(n.endtry, filename).(*ast.EndTry),
 		}
 
 	case NODE_CATCH:
@@ -352,7 +352,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 		return &ast.DotExpr{
 			Left:  newAstNode(n.left, filename),
 			Dot:   pos,
-			Right: *newAstNode(n.right, filename).(*ast.Ident),
+			Right: newAstNode(n.right, filename).(*ast.Ident),
 		}
 
 	case NODE_NUMBER:
@@ -514,14 +514,14 @@ func newBody(n VimNode, filename string) []ast.Statement {
 	return body
 }
 
-func newIdents(n VimNode, filename string) []ast.Ident {
-	var idents []ast.Ident
+func newIdents(n VimNode, filename string) []*ast.Ident {
+	var idents []*ast.Ident
 	if n.rlist != nil {
-		idents = make([]ast.Ident, 0, len(n.rlist))
+		idents = make([]*ast.Ident, 0, len(n.rlist))
 	}
 	for _, node := range n.rlist {
 		if node != nil { // conservative
-			idents = append(idents, *newAstNode(node, filename).(*ast.Ident))
+			idents = append(idents, newAstNode(node, filename).(*ast.Ident))
 		}
 	}
 	return idents
