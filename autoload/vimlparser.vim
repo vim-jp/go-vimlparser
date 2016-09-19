@@ -1344,14 +1344,14 @@ function! s:VimLParser.parse_cmd_function()
     return
   endif
 
-  " :function[!] {name}([arguments]) [range] [abort] [dict]
+  " :function[!] {name}([arguments]) [range] [abort] [dict] [closure]
   let node = s:Node(s:NODE_FUNCTION)
   let node.pos = self.ea.cmdpos
   let node.body = []
   let node.ea = self.ea
   let node.left = left
   let node.rlist = []
-  let node.attr = {'range': 0, 'abort': 0, 'dict': 0}
+  let node.attr = {'range': 0, 'abort': 0, 'dict': 0, 'closure': 0}
   let node.endfunction = s:NIL
   call self.reader.getn(1)
   let tokenizer = s:ExprTokenizer.new(self.reader)
@@ -1415,6 +1415,8 @@ function! s:VimLParser.parse_cmd_function()
       let node.attr.abort = s:TRUE
     elseif key ==# 'dict'
       let node.attr.dict = s:TRUE
+    elseif key ==# 'closure'
+      let node.attr.closure = s:TRUE
     else
       throw s:Err(printf('unexpected token: %s', key), epos)
     endif
