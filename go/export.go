@@ -8,19 +8,19 @@ import (
 )
 
 func (self *VimLParser) Parse(reader *StringReader) ast.Node {
-	return NewNode(self.parse(reader))
+	return newAstNode(self.parse(reader))
 }
 
 func (self *ExprParser) Parse() ast.Node {
-	return NewNode(self.parse())
+	return newAstNode(self.parse())
 }
 
 // ----
 
-// NewNode converts internal node type to ast.Node.
+// newAstNode converts internal node type to ast.Node.
 // n.type_ must no be zero value.
 // n.pos must no be nil except TOPLEVEL node.
-func NewNode(n *VimNode) ast.Node {
+func newAstNode(n *VimNode) ast.Node {
 	if n == nil {
 		return nil
 	}
@@ -65,10 +65,10 @@ func NewNode(n *VimNode) ast.Node {
 			Func:        pos,
 			ExArg:       newExArg(*n.ea),
 			Body:        newBody(*n),
-			Name:        NewNode(n.left),
+			Name:        newAstNode(n.left),
 			Params:      newIdents(*n),
 			Attr:        attr,
-			EndFunction: *NewNode(n.endfunction).(*ast.EndFunction),
+			EndFunction: *newAstNode(n.endfunction).(*ast.EndFunction),
 		}
 
 	case NODE_ENDFUNCTION:
@@ -81,21 +81,21 @@ func NewNode(n *VimNode) ast.Node {
 		return &ast.DelFunction{
 			DelFunc: pos,
 			ExArg:   newExArg(*n.ea),
-			Name:    NewNode(n.left),
+			Name:    newAstNode(n.left),
 		}
 
 	case NODE_RETURN:
 		return &ast.Return{
 			Return: pos,
 			ExArg:  newExArg(*n.ea),
-			Result: NewNode(n.left),
+			Result: newAstNode(n.left),
 		}
 
 	case NODE_EXCALL:
 		return &ast.ExCall{
 			ExCall:   pos,
 			ExArg:    newExArg(*n.ea),
-			FuncCall: *NewNode(n.left).(*ast.CallExpr),
+			FuncCall: *newAstNode(n.left).(*ast.CallExpr),
 		}
 
 	case NODE_LET:
@@ -103,10 +103,10 @@ func NewNode(n *VimNode) ast.Node {
 			Let:   pos,
 			ExArg: newExArg(*n.ea),
 			Op:    n.op,
-			Left:  NewNode(n.left),
+			Left:  newAstNode(n.left),
 			List:  newList(*n),
-			Rest:  NewNode(n.rest),
-			Right: NewNode(n.right),
+			Rest:  newAstNode(n.rest),
+			Right: newAstNode(n.right),
 		}
 
 	case NODE_UNLET:
@@ -139,21 +139,21 @@ func NewNode(n *VimNode) ast.Node {
 		}
 		for _, node := range n.elseif {
 			if node != nil { // conservative
-				elifs = append(elifs, *NewNode(node).(*ast.ElseIf))
+				elifs = append(elifs, *newAstNode(node).(*ast.ElseIf))
 			}
 		}
 		var els *ast.Else
 		if n.else_ != nil {
-			els = NewNode(n.else_).(*ast.Else)
+			els = newAstNode(n.else_).(*ast.Else)
 		}
 		return &ast.If{
 			If:        pos,
 			ExArg:     newExArg(*n.ea),
 			Body:      newBody(*n),
-			Condition: NewNode(n.cond),
+			Condition: newAstNode(n.cond),
 			ElseIf:    elifs,
 			Else:      els,
-			EndIf:     *NewNode(n.endif).(*ast.EndIf),
+			EndIf:     *newAstNode(n.endif).(*ast.EndIf),
 		}
 
 	case NODE_ELSEIF:
@@ -161,7 +161,7 @@ func NewNode(n *VimNode) ast.Node {
 			ElseIf:    pos,
 			ExArg:     newExArg(*n.ea),
 			Body:      newBody(*n),
-			Condition: NewNode(n.cond),
+			Condition: newAstNode(n.cond),
 		}
 
 	case NODE_ELSE:
@@ -182,8 +182,8 @@ func NewNode(n *VimNode) ast.Node {
 			While:     pos,
 			ExArg:     newExArg(*n.ea),
 			Body:      newBody(*n),
-			Condition: NewNode(n.cond),
-			EndWhile:  *NewNode(n.endwhile).(*ast.EndWhile),
+			Condition: newAstNode(n.cond),
+			EndWhile:  *newAstNode(n.endwhile).(*ast.EndWhile),
 		}
 
 	case NODE_ENDWHILE:
@@ -197,11 +197,11 @@ func NewNode(n *VimNode) ast.Node {
 			For:    pos,
 			ExArg:  newExArg(*n.ea),
 			Body:   newBody(*n),
-			Left:   NewNode(n.left),
+			Left:   newAstNode(n.left),
 			List:   newList(*n),
-			Rest:   NewNode(n.rest),
-			Right:  NewNode(n.right),
-			EndFor: *NewNode(n.endfor).(*ast.EndFor),
+			Rest:   newAstNode(n.rest),
+			Right:  newAstNode(n.right),
+			EndFor: *newAstNode(n.endfor).(*ast.EndFor),
 		}
 
 	case NODE_ENDFOR:
@@ -229,12 +229,12 @@ func NewNode(n *VimNode) ast.Node {
 		}
 		for _, node := range n.catch {
 			if node != nil { // conservative
-				catches = append(catches, *NewNode(node).(*ast.Catch))
+				catches = append(catches, *newAstNode(node).(*ast.Catch))
 			}
 		}
 		var finally *ast.Finally
 		if n.finally != nil {
-			finally = NewNode(n.finally).(*ast.Finally)
+			finally = newAstNode(n.finally).(*ast.Finally)
 		}
 		return &ast.Try{
 			Try:     pos,
@@ -242,7 +242,7 @@ func NewNode(n *VimNode) ast.Node {
 			Body:    newBody(*n),
 			Catch:   catches,
 			Finally: finally,
-			EndTry:  *NewNode(n.endtry).(*ast.EndTry),
+			EndTry:  *newAstNode(n.endtry).(*ast.EndTry),
 		}
 
 	case NODE_CATCH:
@@ -270,7 +270,7 @@ func NewNode(n *VimNode) ast.Node {
 		return &ast.Throw{
 			Throw: pos,
 			ExArg: newExArg(*n.ea),
-			Expr:  NewNode(n.left),
+			Expr:  newAstNode(n.left),
 		}
 
 	case NODE_ECHO, NODE_ECHON, NODE_ECHOMSG, NODE_ECHOERR:
@@ -298,9 +298,9 @@ func NewNode(n *VimNode) ast.Node {
 	case NODE_TERNARY:
 		return &ast.TernaryExpr{
 			Ternary:   pos,
-			Condition: NewNode(n.cond),
-			Left:      NewNode(n.left),
-			Right:     NewNode(n.right),
+			Condition: newAstNode(n.cond),
+			Left:      newAstNode(n.left),
+			Right:     newAstNode(n.right),
 		}
 
 	case NODE_OR, NODE_AND, NODE_EQUAL, NODE_EQUALCI, NODE_EQUALCS,
@@ -313,46 +313,46 @@ func NewNode(n *VimNode) ast.Node {
 		NODE_ISNOTCI, NODE_ISNOTCS, NODE_ADD, NODE_SUBTRACT, NODE_CONCAT,
 		NODE_MULTIPLY, NODE_DIVIDE, NODE_REMAINDER:
 		return &ast.BinaryExpr{
-			Left:  NewNode(n.left),
+			Left:  newAstNode(n.left),
 			OpPos: pos,
 			Op:    opToken(n.type_),
-			Right: NewNode(n.right),
+			Right: newAstNode(n.right),
 		}
 
 	case NODE_NOT, NODE_MINUS, NODE_PLUS:
 		return &ast.UnaryExpr{
 			OpPos: pos,
 			Op:    opToken(n.type_),
-			X:     NewNode(n.left),
+			X:     newAstNode(n.left),
 		}
 
 	case NODE_SUBSCRIPT:
 		return &ast.SubscriptExpr{
 			Lbrack: pos,
-			Left:   NewNode(n.left),
-			Right:  NewNode(n.right),
+			Left:   newAstNode(n.left),
+			Right:  newAstNode(n.right),
 		}
 
 	case NODE_SLICE:
 		return &ast.SliceExpr{
 			Lbrack: pos,
-			X:      NewNode(n.left),
-			Low:    NewNode(n.rlist[0]),
-			High:   NewNode(n.rlist[1]),
+			X:      newAstNode(n.left),
+			Low:    newAstNode(n.rlist[0]),
+			High:   newAstNode(n.rlist[1]),
 		}
 
 	case NODE_CALL:
 		return &ast.CallExpr{
 			Lparen: pos,
-			Fun:    NewNode(n.left),
+			Fun:    newAstNode(n.left),
 			Args:   newRlist(*n),
 		}
 
 	case NODE_DOT:
 		return &ast.DotExpr{
-			Left:  NewNode(n.left),
+			Left:  newAstNode(n.left),
 			Dot:   pos,
-			Right: *NewNode(n.right).(*ast.Ident),
+			Right: *newAstNode(n.right).(*ast.Ident),
 		}
 
 	case NODE_NUMBER:
@@ -377,8 +377,8 @@ func NewNode(n *VimNode) ast.Node {
 		var kvs []ast.KeyValue
 		for _, nn := range n.value.([]interface{}) {
 			kv := nn.([]interface{})
-			k := NewNode(kv[0].(*VimNode))
-			v := NewNode(kv[1].(*VimNode))
+			k := newAstNode(kv[0].(*VimNode))
+			v := newAstNode(kv[1].(*VimNode))
 			kvs = append(kvs, ast.KeyValue{Key: k, Value: v})
 		}
 		return &ast.Dict{
@@ -401,7 +401,7 @@ func NewNode(n *VimNode) ast.Node {
 	case NODE_CURLYNAME:
 		var parts []ast.CurlyNamePart
 		for _, n := range n.value.([]*VimNode) {
-			node := NewNode(n)
+			node := newAstNode(n)
 			parts = append(parts, node.(ast.CurlyNamePart))
 		}
 		return &ast.CurlyName{
@@ -433,14 +433,14 @@ func NewNode(n *VimNode) ast.Node {
 		n := n.value.(*VimNode)
 		return &ast.CurlyNameExpr{
 			CurlyNameExpr: pos,
-			Value:         NewNode(n),
+			Value:         newAstNode(n),
 		}
 
 	case NODE_LAMBDA:
 		return &ast.LambdaExpr{
 			Lcurlybrace: pos,
 			Params:      newIdents(*n),
-			Expr:        NewNode(n.left),
+			Expr:        newAstNode(n.left),
 		}
 
 	}
@@ -506,7 +506,7 @@ func newBody(n VimNode) []ast.Statement {
 	}
 	for _, node := range n.body {
 		if node != nil { // conservative
-			body = append(body, NewNode(node))
+			body = append(body, newAstNode(node))
 		}
 	}
 	return body
@@ -519,7 +519,7 @@ func newIdents(n VimNode) []ast.Ident {
 	}
 	for _, node := range n.rlist {
 		if node != nil { // conservative
-			idents = append(idents, *NewNode(node).(*ast.Ident))
+			idents = append(idents, *newAstNode(node).(*ast.Ident))
 		}
 	}
 	return idents
@@ -532,7 +532,7 @@ func newRlist(n VimNode) []ast.Expr {
 	}
 	for _, node := range n.rlist {
 		if node != nil { // conservative
-			exprs = append(exprs, NewNode(node))
+			exprs = append(exprs, newAstNode(node))
 		}
 	}
 	return exprs
@@ -545,7 +545,7 @@ func newList(n VimNode) []ast.Expr {
 	}
 	for _, node := range n.list {
 		if node != nil { // conservative
-			list = append(list, NewNode(node))
+			list = append(list, newAstNode(node))
 		}
 	}
 	return list
@@ -555,7 +555,7 @@ func newValues(n VimNode) []ast.Expr {
 	var values []ast.Expr
 	for _, v := range n.value.([]interface{}) {
 		n := v.(*VimNode)
-		values = append(values, NewNode(n))
+		values = append(values, newAstNode(n))
 	}
 	return values
 }
