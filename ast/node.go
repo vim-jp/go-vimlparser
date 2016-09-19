@@ -67,9 +67,10 @@ type Function struct {
 }
 
 type FuncAttr struct {
-	Range bool
-	Abort bool
-	Dict  bool
+	Range   bool
+	Abort   bool
+	Dict    bool
+	Closure bool
 }
 
 func (f *Function) Pos() Pos { return f.Func }

@@ -187,9 +187,10 @@ func NewExportNode(n *VimNode) *ExportNode {
 }
 
 type ExportFuncAttr struct {
-	Range bool
-	Abort bool
-	Dict  bool
+	Range   bool
+	Abort   bool
+	Dict    bool
+	Closure bool
 }
 
 func NewExportFuncAttr(attr *FuncAttr) *ExportFuncAttr {
@@ -197,9 +198,10 @@ func NewExportFuncAttr(attr *FuncAttr) *ExportFuncAttr {
 		return nil
 	}
 	return &ExportFuncAttr{
-		Range: attr.range_,
-		Abort: attr.abort,
-		Dict:  attr.dict,
+		Range:   attr.range_,
+		Abort:   attr.abort,
+		Dict:    attr.dict,
+		Closure: attr.closure,
 	}
 }
 

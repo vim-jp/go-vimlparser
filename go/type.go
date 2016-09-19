@@ -73,9 +73,10 @@ type VimNode struct {
 }
 
 type FuncAttr struct {
-	range_ bool
-	abort  bool
-	dict   bool
+	range_  bool
+	abort   bool
+	dict    bool
+	closure bool
 }
 
 type lhs struct {
