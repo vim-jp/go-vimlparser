@@ -45,7 +45,7 @@ node js/vimlparser.js autoload/vimlparser.vim > /dev/null  0.77s user 0.04s syst
 
 $ go get github.com/haya14busa/go-vimlparser/cmd/vimlparser
 $ time vimlparser autoload/vimlparser.vim > /dev/null
-vimlparser autoload/vimlparser.vim > /dev/null  0.36s user 0.02s system 125% cpu 0.299 total
+vimlparser autoload/vimlparser.vim > /dev/null  0.25s user 0.03s system 114% cpu 0.244 total
 ```
 </details>
 
@@ -55,7 +55,7 @@ vimlparser autoload/vimlparser.vim > /dev/null  0.36s user 0.02s system 125% cpu
 | Python3 | 4.17s |
 | pypy3 | 2.63s |
 | node | 0.77s |
-| Go | **0.36s** |
+| Go | **0.25s** |
 
 Note that, in addition to the Go lang speed, I added [performance improvement](https://github.com/haya14busa/go-vimlparser/pull/4) for Go implementation.
 
