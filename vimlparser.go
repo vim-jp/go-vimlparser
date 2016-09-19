@@ -56,7 +56,7 @@ func ParseFile(r io.Reader, filename string, opt *ParseOption) (node *ast.File, 
 	if opt != nil {
 		neovim = opt.Neovim
 	}
-	node = internal.NewVimLParser(neovim).Parse(reader).(*ast.File)
+	node = internal.NewVimLParser(neovim).Parse(reader, filename).(*ast.File)
 	return
 }
 
