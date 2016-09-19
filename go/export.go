@@ -1,37 +1,465 @@
 package vimlparser
 
-type ExportExArg struct {
-	Forceit    bool
-	AddrCount  int
-	Line1      int
-	Line2      int
-	Flags      int
-	DoEcmdCmd  string
-	DoEcmdLnum int
-	Append     int
-	Usefilter  bool
-	Amount     int
-	Regname    int
-	ForceBin   int
-	ReadEdit   int
-	ForceFf    string // int
-	ForceEnc   string // int
-	BadChar    string // int
-	Linepos    *ExportPos
-	Cmdpos     *ExportPos
-	Argpos     *ExportPos
-	Cmd        *ExportCmd
-	Modifiers  []interface{}
-	Range      []interface{}
-	Argopt     map[string]interface{}
-	Argcmd     map[string]interface{}
+import (
+	"fmt"
+
+	"github.com/haya14busa/go-vimlparser/ast"
+	"github.com/haya14busa/go-vimlparser/token"
+)
+
+func (self *VimLParser) Parse(reader *StringReader) ast.Node {
+	return NewNode(self.parse(reader))
 }
 
-func NewExportExArg(ea *ExArg) *ExportExArg {
-	if ea == nil {
+func (self *ExprParser) Parse() ast.Node {
+	return NewNode(self.parse())
+}
+
+// ----
+
+// NewNode converts internal node type to ast.Node.
+// n.type_ must no be zero value.
+// n.pos must no be nil except TOPLEVEL node.
+func NewNode(n *VimNode) ast.Node {
+	if n == nil {
 		return nil
 	}
-	return &ExportExArg{
+
+	// TOPLEVEL doens't have position...?
+	var pos ast.Pos
+	if p := newPos(n.pos); p != nil {
+		pos = *p
+	} else {
+		pos = ast.Pos{Offset: 0, Line: 1, Column: 1}
+	}
+
+	switch n.type_ {
+
+	case NODE_TOPLEVEL:
+		return &ast.File{Start: pos, Body: newBody(*n)}
+
+	case NODE_COMMENT:
+		return &ast.Comment{
+			Quote: pos,
+			Text:  n.str,
+		}
+
+	case NODE_EXCMD:
+		return &ast.Excmd{
+			Excmd:   pos,
+			ExArg:   newExArg(*n.ea),
+			Command: n.str,
+		}
+
+	case NODE_FUNCTION:
+		attr := ast.FuncAttr{}
+		if n.attr != nil {
+			attr = ast.FuncAttr{
+				Range:   n.attr.range_,
+				Abort:   n.attr.abort,
+				Dict:    n.attr.dict,
+				Closure: n.attr.closure,
+			}
+		}
+		return &ast.Function{
+			Func:        pos,
+			ExArg:       newExArg(*n.ea),
+			Body:        newBody(*n),
+			Name:        NewNode(n.left),
+			Params:      newIdents(*n),
+			Attr:        attr,
+			EndFunction: *NewNode(n.endfunction).(*ast.EndFunction),
+		}
+
+	case NODE_ENDFUNCTION:
+		return &ast.EndFunction{
+			EndFunc: pos,
+			ExArg:   newExArg(*n.ea),
+		}
+
+	case NODE_DELFUNCTION:
+		return &ast.DelFunction{
+			DelFunc: pos,
+			ExArg:   newExArg(*n.ea),
+			Name:    NewNode(n.left),
+		}
+
+	case NODE_RETURN:
+		return &ast.Return{
+			Return: pos,
+			ExArg:  newExArg(*n.ea),
+			Result: NewNode(n.left),
+		}
+
+	case NODE_EXCALL:
+		return &ast.ExCall{
+			ExCall:   pos,
+			ExArg:    newExArg(*n.ea),
+			FuncCall: *NewNode(n.left).(*ast.CallExpr),
+		}
+
+	case NODE_LET:
+		return &ast.Let{
+			Let:   pos,
+			ExArg: newExArg(*n.ea),
+			Op:    n.op,
+			Left:  NewNode(n.left),
+			List:  newList(*n),
+			Rest:  NewNode(n.rest),
+			Right: NewNode(n.right),
+		}
+
+	case NODE_UNLET:
+		return &ast.UnLet{
+			UnLet: pos,
+			ExArg: newExArg(*n.ea),
+			List:  newList(*n),
+		}
+
+	case NODE_LOCKVAR:
+		return &ast.LockVar{
+			LockVar: pos,
+			ExArg:   newExArg(*n.ea),
+			Depth:   n.depth,
+			List:    newList(*n),
+		}
+
+	case NODE_UNLOCKVAR:
+		return &ast.UnLockVar{
+			UnLockVar: pos,
+			ExArg:     newExArg(*n.ea),
+			Depth:     n.depth,
+			List:      newList(*n),
+		}
+
+	case NODE_IF:
+		var elifs []ast.ElseIf
+		if n.elseif != nil {
+			elifs = make([]ast.ElseIf, 0, len(n.elseif))
+		}
+		for _, node := range n.elseif {
+			if node != nil { // conservative
+				elifs = append(elifs, *NewNode(node).(*ast.ElseIf))
+			}
+		}
+		var els *ast.Else
+		if n.else_ != nil {
+			els = NewNode(n.else_).(*ast.Else)
+		}
+		return &ast.If{
+			If:        pos,
+			ExArg:     newExArg(*n.ea),
+			Body:      newBody(*n),
+			Condition: NewNode(n.cond),
+			ElseIf:    elifs,
+			Else:      els,
+			EndIf:     *NewNode(n.endif).(*ast.EndIf),
+		}
+
+	case NODE_ELSEIF:
+		return &ast.ElseIf{
+			ElseIf:    pos,
+			ExArg:     newExArg(*n.ea),
+			Body:      newBody(*n),
+			Condition: NewNode(n.cond),
+		}
+
+	case NODE_ELSE:
+		return &ast.Else{
+			Else:  pos,
+			ExArg: newExArg(*n.ea),
+			Body:  newBody(*n),
+		}
+
+	case NODE_ENDIF:
+		return &ast.EndIf{
+			EndIf: pos,
+			ExArg: newExArg(*n.ea),
+		}
+
+	case NODE_WHILE:
+		return &ast.While{
+			While:     pos,
+			ExArg:     newExArg(*n.ea),
+			Body:      newBody(*n),
+			Condition: NewNode(n.cond),
+			EndWhile:  *NewNode(n.endwhile).(*ast.EndWhile),
+		}
+
+	case NODE_ENDWHILE:
+		return &ast.EndWhile{
+			EndWhile: pos,
+			ExArg:    newExArg(*n.ea),
+		}
+
+	case NODE_FOR:
+		return &ast.For{
+			For:    pos,
+			ExArg:  newExArg(*n.ea),
+			Body:   newBody(*n),
+			Left:   NewNode(n.left),
+			List:   newList(*n),
+			Rest:   NewNode(n.rest),
+			Right:  NewNode(n.right),
+			EndFor: *NewNode(n.endfor).(*ast.EndFor),
+		}
+
+	case NODE_ENDFOR:
+		return &ast.EndFor{
+			EndFor: pos,
+			ExArg:  newExArg(*n.ea),
+		}
+
+	case NODE_CONTINUE:
+		return &ast.Continue{
+			Continue: pos,
+			ExArg:    newExArg(*n.ea),
+		}
+
+	case NODE_BREAK:
+		return &ast.Break{
+			Break: pos,
+			ExArg: newExArg(*n.ea),
+		}
+
+	case NODE_TRY:
+		var catches []ast.Catch
+		if n.catch != nil {
+			catches = make([]ast.Catch, 0, len(n.catch))
+		}
+		for _, node := range n.catch {
+			if node != nil { // conservative
+				catches = append(catches, *NewNode(node).(*ast.Catch))
+			}
+		}
+		var finally *ast.Finally
+		if n.finally != nil {
+			finally = NewNode(n.finally).(*ast.Finally)
+		}
+		return &ast.Try{
+			Try:     pos,
+			ExArg:   newExArg(*n.ea),
+			Body:    newBody(*n),
+			Catch:   catches,
+			Finally: finally,
+			EndTry:  *NewNode(n.endtry).(*ast.EndTry),
+		}
+
+	case NODE_CATCH:
+		return &ast.Catch{
+			Catch:   pos,
+			ExArg:   newExArg(*n.ea),
+			Body:    newBody(*n),
+			Pattern: n.pattern,
+		}
+
+	case NODE_FINALLY:
+		return &ast.Finally{
+			Finally: pos,
+			ExArg:   newExArg(*n.ea),
+			Body:    newBody(*n),
+		}
+
+	case NODE_ENDTRY:
+		return &ast.EndTry{
+			EndTry: pos,
+			ExArg:  newExArg(*n.ea),
+		}
+
+	case NODE_THROW:
+		return &ast.Throw{
+			Throw: pos,
+			ExArg: newExArg(*n.ea),
+			Expr:  NewNode(n.left),
+		}
+
+	case NODE_ECHO, NODE_ECHON, NODE_ECHOMSG, NODE_ECHOERR:
+		return &ast.EchoCmd{
+			Start:   pos,
+			CmdName: n.ea.cmd.name,
+			ExArg:   newExArg(*n.ea),
+			Exprs:   newList(*n),
+		}
+
+	case NODE_ECHOHL:
+		return &ast.Echohl{
+			Echohl: pos,
+			ExArg:  newExArg(*n.ea),
+			Name:   n.str,
+		}
+
+	case NODE_EXECUTE:
+		return &ast.Execute{
+			Execute: pos,
+			ExArg:   newExArg(*n.ea),
+			Exprs:   newList(*n),
+		}
+
+	case NODE_TERNARY:
+		return &ast.TernaryExpr{
+			Ternary:   pos,
+			Condition: NewNode(n.cond),
+			Left:      NewNode(n.left),
+			Right:     NewNode(n.right),
+		}
+
+	case NODE_OR, NODE_AND, NODE_EQUAL, NODE_EQUALCI, NODE_EQUALCS,
+		NODE_NEQUAL, NODE_NEQUALCI, NODE_NEQUALCS, NODE_GREATER,
+		NODE_GREATERCI, NODE_GREATERCS, NODE_GEQUAL, NODE_GEQUALCI,
+		NODE_GEQUALCS, NODE_SMALLER, NODE_SMALLERCI, NODE_SMALLERCS,
+		NODE_SEQUAL, NODE_SEQUALCI, NODE_SEQUALCS, NODE_MATCH,
+		NODE_MATCHCI, NODE_MATCHCS, NODE_NOMATCH, NODE_NOMATCHCI,
+		NODE_NOMATCHCS, NODE_IS, NODE_ISCI, NODE_ISCS, NODE_ISNOT,
+		NODE_ISNOTCI, NODE_ISNOTCS, NODE_ADD, NODE_SUBTRACT, NODE_CONCAT,
+		NODE_MULTIPLY, NODE_DIVIDE, NODE_REMAINDER:
+		return &ast.BinaryExpr{
+			Left:  NewNode(n.left),
+			OpPos: pos,
+			Op:    opToken(n.type_),
+			Right: NewNode(n.right),
+		}
+
+	case NODE_NOT, NODE_MINUS, NODE_PLUS:
+		return &ast.UnaryExpr{
+			OpPos: pos,
+			Op:    opToken(n.type_),
+			X:     NewNode(n.left),
+		}
+
+	case NODE_SUBSCRIPT:
+		return &ast.SubscriptExpr{
+			Lbrack: pos,
+			Left:   NewNode(n.left),
+			Right:  NewNode(n.right),
+		}
+
+	case NODE_SLICE:
+		return &ast.SliceExpr{
+			Lbrack: pos,
+			X:      NewNode(n.left),
+			Low:    NewNode(n.rlist[0]),
+			High:   NewNode(n.rlist[1]),
+		}
+
+	case NODE_CALL:
+		return &ast.CallExpr{
+			Lparen: pos,
+			Fun:    NewNode(n.left),
+			Args:   newRlist(*n),
+		}
+
+	case NODE_DOT:
+		return &ast.DotExpr{
+			Left:  NewNode(n.left),
+			Dot:   pos,
+			Right: *NewNode(n.right).(*ast.Ident),
+		}
+
+	case NODE_NUMBER:
+		return &ast.BasicLit{
+			ValuePos: pos,
+			Kind:     token.NUMBER,
+			Value:    n.value.(string),
+		}
+	case NODE_STRING:
+		return &ast.BasicLit{
+			ValuePos: pos,
+			Kind:     token.STRING,
+			Value:    n.value.(string),
+		}
+	case NODE_LIST:
+		return &ast.List{
+			Lsquare: pos,
+			Values:  newValues(*n),
+		}
+
+	case NODE_DICT:
+		var kvs []ast.KeyValue
+		for _, nn := range n.value.([]interface{}) {
+			kv := nn.([]interface{})
+			k := NewNode(kv[0].(*VimNode))
+			v := NewNode(kv[1].(*VimNode))
+			kvs = append(kvs, ast.KeyValue{Key: k, Value: v})
+		}
+		return &ast.Dict{
+			Lcurlybrace: pos,
+			Entries:     kvs,
+		}
+
+	case NODE_OPTION:
+		return &ast.BasicLit{
+			ValuePos: pos,
+			Kind:     token.OPTION,
+			Value:    n.value.(string),
+		}
+	case NODE_IDENTIFIER:
+		return &ast.Ident{
+			NamePos: pos,
+			Name:    n.value.(string),
+		}
+
+	case NODE_CURLYNAME:
+		var parts []ast.CurlyNamePart
+		for _, n := range n.value.([]*VimNode) {
+			node := NewNode(n)
+			parts = append(parts, node.(ast.CurlyNamePart))
+		}
+		return &ast.CurlyName{
+			CurlyName: pos,
+			Parts:     parts,
+		}
+
+	case NODE_ENV:
+		return &ast.BasicLit{
+			ValuePos: pos,
+			Kind:     token.ENV,
+			Value:    n.value.(string),
+		}
+
+	case NODE_REG:
+		return &ast.BasicLit{
+			ValuePos: pos,
+			Kind:     token.REG,
+			Value:    n.value.(string),
+		}
+
+	case NODE_CURLYNAMEPART:
+		return &ast.CurlyNameLit{
+			CurlyNameLit: pos,
+			Value:        n.value.(string),
+		}
+
+	case NODE_CURLYNAMEEXPR:
+		n := n.value.(*VimNode)
+		return &ast.CurlyNameExpr{
+			CurlyNameExpr: pos,
+			Value:         NewNode(n),
+		}
+
+	case NODE_LAMBDA:
+		return &ast.LambdaExpr{
+			Lcurlybrace: pos,
+			Params:      newIdents(*n),
+			Expr:        NewNode(n.left),
+		}
+
+	}
+	panic(fmt.Errorf("Unknown node type: %v, node: %v", n.type_, n))
+}
+
+func newPos(p *pos) *ast.Pos {
+	if p == nil {
+		return nil
+	}
+	return &ast.Pos{
+		Offset: p.i,
+		Line:   p.lnum,
+		Column: p.col,
+	}
+}
+
+func newExArg(ea ExArg) ast.ExArg {
+	return ast.ExArg{
 		Forceit:    ea.forceit,
 		AddrCount:  ea.addr_count,
 		Line1:      ea.line1,
@@ -48,10 +476,10 @@ func NewExportExArg(ea *ExArg) *ExportExArg {
 		ForceFf:    ea.force_ff,
 		ForceEnc:   ea.force_enc,
 		BadChar:    ea.bad_char,
-		Linepos:    NewExportPos(ea.linepos),
-		Cmdpos:     NewExportPos(ea.cmdpos),
-		Argpos:     NewExportPos(ea.argpos),
-		Cmd:        NewExportCmd(ea.cmd),
+		Linepos:    newPos(ea.linepos),
+		Cmdpos:     newPos(ea.cmdpos),
+		Argpos:     newPos(ea.argpos),
+		Cmd:        newCmd(ea.cmd),
 		Modifiers:  ea.modifiers,
 		Range:      ea.range_,
 		Argopt:     ea.argopt,
@@ -59,18 +487,11 @@ func NewExportExArg(ea *ExArg) *ExportExArg {
 	}
 }
 
-type ExportCmd struct {
-	Name   string
-	Minlen int
-	Flags  string
-	Parser string
-}
-
-func NewExportCmd(c *Cmd) *ExportCmd {
+func newCmd(c *Cmd) *ast.Cmd {
 	if c == nil {
 		return nil
 	}
-	return &ExportCmd{
+	return &ast.Cmd{
 		Name:   c.name,
 		Minlen: c.minlen,
 		Flags:  c.flags,
@@ -78,272 +499,151 @@ func NewExportCmd(c *Cmd) *ExportCmd {
 	}
 }
 
-type ExportPos struct {
-	I    int
-	Lnum int
-	Col  int
+func newBody(n VimNode) []ast.Statement {
+	var body []ast.Statement
+	if n.body != nil {
+		body = make([]ast.Statement, 0, len(n.body))
+	}
+	for _, node := range n.body {
+		if node != nil { // conservative
+			body = append(body, NewNode(node))
+		}
+	}
+	return body
 }
 
-func NewExportPos(p *pos) *ExportPos {
-	if p == nil {
-		return nil
+func newIdents(n VimNode) []ast.Ident {
+	var idents []ast.Ident
+	if n.rlist != nil {
+		idents = make([]ast.Ident, 0, len(n.rlist))
 	}
-	return &ExportPos{
-		I:    p.i,
-		Lnum: p.lnum,
-		Col:  p.col,
+	for _, node := range n.rlist {
+		if node != nil { // conservative
+			idents = append(idents, *NewNode(node).(*ast.Ident))
+		}
 	}
+	return idents
 }
 
-type ExportNode struct {
-	Type  int
-	Pos   *ExportPos
-	Left  *ExportNode
-	Right *ExportNode
-	Cond  *ExportNode
-	Rest  *ExportNode
-	List  []*ExportNode
-	Rlist []*ExportNode
-	Body  []*ExportNode
-	Op    string
-	Str   string
-	Depth int
-	Value interface{}
-
-	Ea   *ExportExArg
-	Attr *ExportFuncAttr
-
-	Endfunction *ExportNode
-	Elseif      []*ExportNode
-	Else        *ExportNode
-	Endif       *ExportNode
-	Endwhile    *ExportNode
-	Endfor      *ExportNode
-	Endtry      *ExportNode
-
-	Catch   []*ExportNode
-	Finally *ExportNode
-
-	Pattern string
-	Curly   bool
+func newRlist(n VimNode) []ast.Expr {
+	var exprs []ast.Expr
+	if n.rlist != nil {
+		exprs = make([]ast.Expr, 0, len(n.rlist))
+	}
+	for _, node := range n.rlist {
+		if node != nil { // conservative
+			exprs = append(exprs, NewNode(node))
+		}
+	}
+	return exprs
 }
 
-func NewExportNode(n *VimNode) *ExportNode {
-	if n == nil {
-		return nil
+func newList(n VimNode) []ast.Expr {
+	var list []ast.Expr
+	if n.list != nil {
+		list = make([]ast.Expr, 0, len(n.list))
 	}
-	list := make([]*ExportNode, 0, len(n.list))
-	for _, n := range n.list {
-		list = append(list, NewExportNode(n))
+	for _, node := range n.list {
+		if node != nil { // conservative
+			list = append(list, NewNode(node))
+		}
 	}
-	rlist := make([]*ExportNode, 0, len(n.rlist))
-	for _, n := range n.rlist {
-		rlist = append(rlist, NewExportNode(n))
-	}
-	body := make([]*ExportNode, 0, len(n.body))
-	for _, n := range n.body {
-		body = append(body, NewExportNode(n))
-	}
-	elseif := make([]*ExportNode, 0, len(n.elseif))
-	for _, n := range n.elseif {
-		elseif = append(elseif, NewExportNode(n))
-	}
-	catch := make([]*ExportNode, 0, len(n.catch))
-	for _, n := range n.catch {
-		catch = append(catch, NewExportNode(n))
-	}
-	return &ExportNode{
-		Type:  n.type_,
-		Pos:   NewExportPos(n.pos),
-		Left:  NewExportNode(n.left),
-		Right: NewExportNode(n.right),
-		Cond:  NewExportNode(n.cond),
-		Rest:  NewExportNode(n.rest),
-		List:  list,
-		Rlist: rlist,
-		Body:  body,
-		Op:    n.op,
-		Str:   n.str,
-		Depth: n.depth,
-		Value: n.value,
-
-		Ea:   NewExportExArg(n.ea),
-		Attr: NewExportFuncAttr(n.attr),
-
-		Endfunction: NewExportNode(n.endfunction),
-		Elseif:      elseif,
-		Else:        NewExportNode(n.else_),
-		Endif:       NewExportNode(n.endif),
-		Endwhile:    NewExportNode(n.endwhile),
-		Endfor:      NewExportNode(n.endfor),
-		Endtry:      NewExportNode(n.endtry),
-
-		Catch:   catch,
-		Finally: NewExportNode(n.finally),
-
-		Pattern: n.pattern,
-		Curly:   n.curly,
-	}
+	return list
 }
 
-type ExportFuncAttr struct {
-	Range   bool
-	Abort   bool
-	Dict    bool
-	Closure bool
+func newValues(n VimNode) []ast.Expr {
+	var values []ast.Expr
+	for _, v := range n.value.([]interface{}) {
+		n := v.(*VimNode)
+		values = append(values, NewNode(n))
+	}
+	return values
 }
 
-func NewExportFuncAttr(attr *FuncAttr) *ExportFuncAttr {
-	if attr == nil {
-		return nil
+func opToken(nodeType int) token.Token {
+	switch nodeType {
+	case NODE_OR:
+		return token.OROR
+	case NODE_AND:
+		return token.ANDAND
+	case NODE_EQUAL:
+		return token.EQEQ
+	case NODE_EQUALCI:
+		return token.EQEQCI
+	case NODE_EQUALCS:
+		return token.EQEQCS
+	case NODE_NEQUAL:
+		return token.NEQ
+	case NODE_NEQUALCI:
+		return token.NEQCI
+	case NODE_NEQUALCS:
+		return token.NEQCS
+	case NODE_GREATER:
+		return token.GT
+	case NODE_GREATERCI:
+		return token.GTCI
+	case NODE_GREATERCS:
+		return token.GTCS
+	case NODE_GEQUAL:
+		return token.GTEQ
+	case NODE_GEQUALCI:
+		return token.GTEQCI
+	case NODE_GEQUALCS:
+		return token.GTEQCS
+	case NODE_SMALLER:
+		return token.LT
+	case NODE_SMALLERCI:
+		return token.LTCI
+	case NODE_SMALLERCS:
+		return token.LTCS
+	case NODE_SEQUAL:
+		return token.LTEQ
+	case NODE_SEQUALCI:
+		return token.LTEQCI
+	case NODE_SEQUALCS:
+		return token.LTEQCS
+	case NODE_MATCH:
+		return token.MATCH
+	case NODE_MATCHCI:
+		return token.MATCHCI
+	case NODE_MATCHCS:
+		return token.MATCHCS
+	case NODE_NOMATCH:
+		return token.NOMATCH
+	case NODE_NOMATCHCI:
+		return token.NOMATCHCI
+	case NODE_NOMATCHCS:
+		return token.NOMATCHCS
+	case NODE_IS:
+		return token.IS
+	case NODE_ISCI:
+		return token.ISCI
+	case NODE_ISCS:
+		return token.ISCS
+	case NODE_ISNOT:
+		return token.ISNOT
+	case NODE_ISNOTCI:
+		return token.ISNOTCI
+	case NODE_ISNOTCS:
+		return token.ISNOTCS
+	case NODE_ADD:
+		return token.PLUS
+	case NODE_SUBTRACT:
+		return token.MINUS
+	case NODE_CONCAT:
+		return token.DOT
+	case NODE_MULTIPLY:
+		return token.STAR
+	case NODE_DIVIDE:
+		return token.SLASH
+	case NODE_REMAINDER:
+		return token.PERCENT
+	case NODE_NOT:
+		return token.NOT
+	case NODE_MINUS:
+		return token.MINUS
+	case NODE_PLUS:
+		return token.PLUS
 	}
-	return &ExportFuncAttr{
-		Range:   attr.range_,
-		Abort:   attr.abort,
-		Dict:    attr.dict,
-		Closure: attr.closure,
-	}
-}
-
-func (self *VimLParser) Parse(reader *StringReader) *ExportNode {
-	return NewExportNode(self.parse(reader))
-}
-
-func (self *ExprParser) Parse() *ExportNode {
-	return NewExportNode(self.parse())
-}
-
-func (self *Compiler) Compile(node *ExportNode) []string {
-	out := NewCompiler().compile(newInternalNode(node))
-	if r, ok := out.([]string); ok {
-		return r
-	}
-	if r, ok := out.(string); ok {
-		return []string{r}
-	}
-	return nil
-}
-
-func newInternalNode(n *ExportNode) *VimNode {
-	if n == nil {
-		return nil
-	}
-	list := make([]*VimNode, 0, len(n.List))
-	for _, n := range n.List {
-		list = append(list, newInternalNode(n))
-	}
-	rlist := make([]*VimNode, 0, len(n.Rlist))
-	for _, n := range n.Rlist {
-		rlist = append(rlist, newInternalNode(n))
-	}
-	body := make([]*VimNode, 0, len(n.Body))
-	for _, n := range n.Body {
-		body = append(body, newInternalNode(n))
-	}
-	elseif := make([]*VimNode, 0, len(n.Elseif))
-	for _, n := range n.Elseif {
-		elseif = append(elseif, newInternalNode(n))
-	}
-	catch := make([]*VimNode, 0, len(n.Catch))
-	for _, n := range n.Catch {
-		catch = append(catch, newInternalNode(n))
-	}
-	return &VimNode{
-		type_: n.Type,
-		pos:   newInternalPos(n.Pos),
-		left:  newInternalNode(n.Left),
-		right: newInternalNode(n.Right),
-		cond:  newInternalNode(n.Cond),
-		rest:  newInternalNode(n.Rest),
-		list:  list,
-		rlist: rlist,
-		body:  body,
-		op:    n.Op,
-		str:   n.Str,
-		depth: n.Depth,
-		value: n.Value,
-
-		ea:   newInternalExArg(n.Ea),
-		attr: newInternalFuncAttr(n.Attr),
-
-		endfunction: newInternalNode(n.Endfunction),
-		elseif:      elseif,
-		else_:       newInternalNode(n.Else),
-		endif:       newInternalNode(n.Endif),
-		endwhile:    newInternalNode(n.Endwhile),
-		endfor:      newInternalNode(n.Endfor),
-		endtry:      newInternalNode(n.Endtry),
-
-		catch:   catch,
-		finally: newInternalNode(n.Finally),
-
-		pattern: n.Pattern,
-		curly:   n.Curly,
-	}
-}
-
-func newInternalPos(p *ExportPos) *pos {
-	if p == nil {
-		return nil
-	}
-	return &pos{
-		i:    p.I,
-		lnum: p.Lnum,
-		col:  p.Col,
-	}
-}
-
-func newInternalFuncAttr(attr *ExportFuncAttr) *FuncAttr {
-	if attr == nil {
-		return nil
-	}
-	return &FuncAttr{
-		range_: attr.Range,
-		abort:  attr.Abort,
-		dict:   attr.Dict,
-	}
-}
-
-func newInternalExArg(ea *ExportExArg) *ExArg {
-	if ea == nil {
-		return nil
-	}
-	return &ExArg{
-		forceit:      ea.Forceit,
-		addr_count:   ea.AddrCount,
-		line1:        ea.Line1,
-		line2:        ea.Line2,
-		flags:        ea.Flags,
-		do_ecmd_cmd:  ea.DoEcmdCmd,
-		do_ecmd_lnum: ea.DoEcmdLnum,
-		append:       ea.Append,
-		usefilter:    ea.Usefilter,
-		amount:       ea.Amount,
-		regname:      ea.Regname,
-		force_bin:    ea.ForceBin,
-		read_edit:    ea.ReadEdit,
-		force_ff:     ea.ForceFf,
-		force_enc:    ea.ForceEnc,
-		bad_char:     ea.BadChar,
-		linepos:      newInternalPos(ea.Linepos),
-		cmdpos:       newInternalPos(ea.Cmdpos),
-		argpos:       newInternalPos(ea.Argpos),
-		cmd:          newInternalCmd(ea.Cmd),
-		modifiers:    ea.Modifiers,
-		range_:       ea.Range,
-		argopt:       ea.Argopt,
-		argcmd:       ea.Argcmd,
-	}
-}
-
-func newInternalCmd(c *ExportCmd) *Cmd {
-	if c == nil {
-		return nil
-	}
-	return &Cmd{
-		name:   c.Name,
-		minlen: c.Minlen,
-		flags:  c.Flags,
-		parser: c.Parser,
-	}
+	return token.ILLEGAL
 }
