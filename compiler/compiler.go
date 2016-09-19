@@ -178,7 +178,7 @@ func (c *Compiler) compileReturn(node *ast.Return) {
 }
 
 func (c *Compiler) compileExcall(node *ast.ExCall) {
-	c.fprintln("(%s %s)", node.Cmd().Name, c.compileExpr(&node.FuncCall))
+	c.fprintln("(%s %s)", node.Cmd().Name, c.compileExpr(node.FuncCall))
 }
 
 func (c *Compiler) compileLet(node *ast.Let) {
@@ -396,7 +396,7 @@ func (c *Compiler) compileExpr(node ast.Expr) string {
 		return fmt.Sprintf("(%s)", name)
 	case *ast.DotExpr:
 		l := c.compileExpr(n.Left)
-		r := c.compileExpr(&n.Right)
+		r := c.compileExpr(n.Right)
 		return fmt.Sprintf("(dot %s %s)", l, r)
 	case *ast.BasicLit:
 		return n.Value
