@@ -453,7 +453,7 @@ var builtin_commands = []*Cmd{
 	{flags: "TRLBAR|BANG|CMDWIN", minlen: 3, name: "suspend", parser: "parse_cmd_common"},
 	{flags: "BANG|FILE1|RANGE|NOTADR|EDITCMD|ARGOPT|TRLBAR", minlen: 2, name: "sview", parser: "parse_cmd_common"},
 	{flags: "TRLBAR|CMDWIN", minlen: 2, name: "swapname", parser: "parse_cmd_common"},
-	{flags: "EXTRA|NOTRLCOM|CMDWIN", minlen: 2, name: "syntax", parser: "parse_cmd_common"},
+	{flags: "EXTRA|NOTRLCOM|CMDWIN", minlen: 2, name: "syntax", parser: "parse_cmd_syntax"},
 	{flags: "NEEDARG|WORD1|TRLBAR|CMDWIN", minlen: 5, name: "syntime", parser: "parse_cmd_common"},
 	{flags: "TRLBAR", minlen: 4, name: "syncbind", parser: "parse_cmd_common"},
 	{flags: "RANGE|WHOLEFOLD|EXTRA|TRLBAR|CMDWIN|MODIFY", minlen: 1, name: "t", parser: "parse_cmd_common"},

@@ -782,6 +782,8 @@ func (self *VimLParser) _parse_command(parser string) {
 		self.parse_cmd_while()
 	} else if parser == "parse_wincmd" {
 		self.parse_wincmd()
+	} else if parser == "parse_cmd_syntax" {
+		self.parse_cmd_syntax()
 	}
 }
 
@@ -1763,6 +1765,16 @@ func (self *VimLParser) parse_wincmd() {
 	if !self.ends_excmds(self.reader.peek()) {
 		panic(Err("E474: Invalid Argument", self.reader.getpos()))
 	}
+	var node = Node(NODE_EXCMD)
+	node.pos = self.ea.cmdpos
+	node.ea = self.ea
+	node.str = self.reader.getstr(self.ea.linepos, end)
+	self.add_node(node)
+}
+
+// FIXME: validate argument
+func (self *VimLParser) parse_cmd_syntax() {
+	var end = self.separate_nextcmd()
 	var node = Node(NODE_EXCMD)
 	node.pos = self.ea.cmdpos
 	node.ea = self.ea
