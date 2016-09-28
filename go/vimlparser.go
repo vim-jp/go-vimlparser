@@ -1774,7 +1774,21 @@ func (self *VimLParser) parse_wincmd() {
 
 // FIXME: validate argument
 func (self *VimLParser) parse_cmd_syntax() {
-	var end = self.separate_nextcmd()
+	var end = self.reader.getpos()
+	for true {
+		end = self.reader.getpos()
+		var c = self.reader.peek()
+		if c == "/" || c == "'" || c == "\"" {
+			self.reader.getn(1)
+			self.parse_pattern(c)
+		} else if c == "=" {
+			self.reader.getn(1)
+			self.parse_pattern(" ")
+		} else if self.ends_excmds(c) {
+			break
+		}
+		self.reader.getn(1)
+	}
 	var node = Node(NODE_EXCMD)
 	node.pos = self.ea.cmdpos
 	node.ea = self.ea
