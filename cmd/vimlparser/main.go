@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -11,6 +12,7 @@ import (
 )
 
 var neovim = flag.Bool("neovim", false, "use neovim parser")
+var usejson = flag.Bool("json", false, "output json")
 
 func main() {
 	flag.Parse()
@@ -18,7 +20,7 @@ func main() {
 	opt := &vimlparser.ParseOption{Neovim: *neovim}
 
 	if len(flag.Args()) == 0 {
-		if err := parseFile("", os.Stdin, os.Stdout, opt); err != nil {
+		if err := parseFile("", os.Stdin, os.Stdout, opt, *usejson); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
@@ -37,7 +39,7 @@ func main() {
 			exitCode = 1
 			continue
 		}
-		if err := parseFile(f.Name(), f, os.Stdout, opt); err != nil {
+		if err := parseFile(f.Name(), f, os.Stdout, opt, *usejson); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			exitCode = 1
 		}
@@ -47,11 +49,16 @@ func main() {
 }
 
 // filename is empty string if r is os.Stdin
-func parseFile(filename string, r io.ReadCloser, w io.Writer, opt *vimlparser.ParseOption) error {
+func parseFile(filename string, r io.ReadCloser, w io.Writer, opt *vimlparser.ParseOption, usejson bool) error {
 	defer r.Close()
 	node, err := vimlparser.ParseFile(r, filename, opt)
 	if err != nil {
 		return err
+	}
+	if usejson {
+		e := json.NewEncoder(w)
+		e.SetIndent("", "    ")
+		return e.Encode(node)
 	}
 	c := &compiler.Compiler{Config: compiler.Config{Indent: "  "}}
 	if err := c.Compile(w, node); err != nil {
