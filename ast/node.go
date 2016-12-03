@@ -14,12 +14,14 @@ type Node interface {
 // Statement is the interface for statement (Ex command or Comment).
 type Statement interface {
 	Node
+	stmtNode()
 }
 
 // ExCommand is the interface for Ex-command.
 type ExCommand interface {
 	Node
 	Cmd() Cmd
+	stmtNode()
 }
 
 // Expr is the interface for expression.
@@ -523,6 +525,40 @@ type LambdaExpr struct {
 }
 
 func (i *LambdaExpr) Pos() Pos { return i.Lcurlybrace }
+
+// stmtNode() ensures that only ExComamnd and Comment nodes can be assigned to
+// an Statement.
+//
+func (*Break) stmtNode()      {}
+func (*Catch) stmtNode()      {}
+func (*Continue) stmtNode()   {}
+func (DelFunction) stmtNode() {}
+func (*EchoCmd) stmtNode()    {}
+func (*Echohl) stmtNode()     {}
+func (*Else) stmtNode()       {}
+func (*ElseIf) stmtNode()     {}
+func (*EndFor) stmtNode()     {}
+func (EndFunction) stmtNode() {}
+func (*EndIf) stmtNode()      {}
+func (*EndTry) stmtNode()     {}
+func (*EndWhile) stmtNode()   {}
+func (*ExCall) stmtNode()     {}
+func (Excmd) stmtNode()       {}
+func (*Execute) stmtNode()    {}
+func (*Finally) stmtNode()    {}
+func (*For) stmtNode()        {}
+func (Function) stmtNode()    {}
+func (*If) stmtNode()         {}
+func (*Let) stmtNode()        {}
+func (*LockVar) stmtNode()    {}
+func (*Return) stmtNode()     {}
+func (*Throw) stmtNode()      {}
+func (*Try) stmtNode()        {}
+func (*UnLet) stmtNode()      {}
+func (*UnLockVar) stmtNode()  {}
+func (*While) stmtNode()      {}
+
+func (*Comment) stmtNode() {}
 
 // exprNode() ensures that only expression nodes can be assigned to an Expr.
 //
