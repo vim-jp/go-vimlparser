@@ -25,6 +25,7 @@ type ExCommand interface {
 // Expr is the interface for expression.
 type Expr interface {
 	Node
+	exprNode()
 }
 
 // File node represents a Vim script source file.
@@ -480,7 +481,7 @@ type CurlyName struct {
 func (c *CurlyName) Pos() Pos { return c.CurlyName }
 
 type CurlyNamePart interface {
-	Node
+	Expr
 	IsCurlyExpr() bool
 }
 
@@ -522,3 +523,22 @@ type LambdaExpr struct {
 }
 
 func (i *LambdaExpr) Pos() Pos { return i.Lcurlybrace }
+
+// exprNode() ensures that only expression nodes can be assigned to an Expr.
+//
+func (*TernaryExpr) exprNode()   {}
+func (*BinaryExpr) exprNode()    {}
+func (*UnaryExpr) exprNode()     {}
+func (*SubscriptExpr) exprNode() {}
+func (*SliceExpr) exprNode()     {}
+func (*CallExpr) exprNode()      {}
+func (*DotExpr) exprNode()       {}
+func (*BasicLit) exprNode()      {}
+func (*List) exprNode()          {}
+func (*Dict) exprNode()          {}
+func (*KeyValue) exprNode()      {}
+func (*CurlyName) exprNode()     {}
+func (*CurlyNameLit) exprNode()  {}
+func (*CurlyNameExpr) exprNode() {}
+func (*Ident) exprNode()         {}
+func (*LambdaExpr) exprNode()    {}
