@@ -7,12 +7,14 @@ import (
 	"github.com/haya14busa/go-vimlparser/token"
 )
 
-func (self *VimLParser) Parse(reader *StringReader, filename string) ast.Node {
-	return newAstNode(self.parse(reader), filename)
+// Parse parses Vim script in reader and returns Node.
+func (p *VimLParser) Parse(reader *StringReader, filename string) ast.Node {
+	return newAstNode(p.parse(reader), filename)
 }
 
-func (self *ExprParser) Parse() ast.Expr {
-	return newExprNode(self.parse(), "")
+// Parse parses Vim script expression.
+func (p *ExprParser) Parse() ast.Expr {
+	return newExprNode(p.parse(), "")
 }
 
 // ----
