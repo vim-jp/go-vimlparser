@@ -7,12 +7,14 @@ import (
 	"github.com/haya14busa/go-vimlparser/token"
 )
 
-func (self *VimLParser) Parse(reader *StringReader, filename string) ast.Node {
-	return newAstNode(self.parse(reader), filename)
+// Parse parses Vim script in reader and returns Node.
+func (p *VimLParser) Parse(reader *StringReader, filename string) ast.Node {
+	return newAstNode(p.parse(reader), filename)
 }
 
-func (self *ExprParser) Parse() ast.Node {
-	return newAstNode(self.parse(), "")
+// Parse parses Vim script expression.
+func (p *ExprParser) Parse() ast.Expr {
+	return newExprNode(p.parse(), "")
 }
 
 // ----
@@ -65,7 +67,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			Func:        pos,
 			ExArg:       newExArg(*n.ea, filename),
 			Body:        newBody(*n, filename),
-			Name:        newAstNode(n.left, filename),
+			Name:        newExprNode(n.left, filename),
 			Params:      newIdents(*n, filename),
 			Attr:        attr,
 			EndFunction: newAstNode(n.endfunction, filename).(*ast.EndFunction),
@@ -81,14 +83,14 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 		return &ast.DelFunction{
 			DelFunc: pos,
 			ExArg:   newExArg(*n.ea, filename),
-			Name:    newAstNode(n.left, filename),
+			Name:    newExprNode(n.left, filename),
 		}
 
 	case NODE_RETURN:
 		return &ast.Return{
 			Return: pos,
 			ExArg:  newExArg(*n.ea, filename),
-			Result: newAstNode(n.left, filename),
+			Result: newExprNode(n.left, filename),
 		}
 
 	case NODE_EXCALL:
@@ -103,10 +105,10 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			Let:   pos,
 			ExArg: newExArg(*n.ea, filename),
 			Op:    n.op,
-			Left:  newAstNode(n.left, filename),
+			Left:  newExprNode(n.left, filename),
 			List:  newList(*n, filename),
-			Rest:  newAstNode(n.rest, filename),
-			Right: newAstNode(n.right, filename),
+			Rest:  newExprNode(n.rest, filename),
+			Right: newExprNode(n.right, filename),
 		}
 
 	case NODE_UNLET:
@@ -150,7 +152,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			If:        pos,
 			ExArg:     newExArg(*n.ea, filename),
 			Body:      newBody(*n, filename),
-			Condition: newAstNode(n.cond, filename),
+			Condition: newExprNode(n.cond, filename),
 			ElseIf:    elifs,
 			Else:      els,
 			EndIf:     newAstNode(n.endif, filename).(*ast.EndIf),
@@ -161,7 +163,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			ElseIf:    pos,
 			ExArg:     newExArg(*n.ea, filename),
 			Body:      newBody(*n, filename),
-			Condition: newAstNode(n.cond, filename),
+			Condition: newExprNode(n.cond, filename),
 		}
 
 	case NODE_ELSE:
@@ -182,7 +184,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			While:     pos,
 			ExArg:     newExArg(*n.ea, filename),
 			Body:      newBody(*n, filename),
-			Condition: newAstNode(n.cond, filename),
+			Condition: newExprNode(n.cond, filename),
 			EndWhile:  newAstNode(n.endwhile, filename).(*ast.EndWhile),
 		}
 
@@ -197,10 +199,10 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			For:    pos,
 			ExArg:  newExArg(*n.ea, filename),
 			Body:   newBody(*n, filename),
-			Left:   newAstNode(n.left, filename),
+			Left:   newExprNode(n.left, filename),
 			List:   newList(*n, filename),
-			Rest:   newAstNode(n.rest, filename),
-			Right:  newAstNode(n.right, filename),
+			Rest:   newExprNode(n.rest, filename),
+			Right:  newExprNode(n.right, filename),
 			EndFor: newAstNode(n.endfor, filename).(*ast.EndFor),
 		}
 
@@ -270,7 +272,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 		return &ast.Throw{
 			Throw: pos,
 			ExArg: newExArg(*n.ea, filename),
-			Expr:  newAstNode(n.left, filename),
+			Expr:  newExprNode(n.left, filename),
 		}
 
 	case NODE_ECHO, NODE_ECHON, NODE_ECHOMSG, NODE_ECHOERR:
@@ -298,9 +300,9 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 	case NODE_TERNARY:
 		return &ast.TernaryExpr{
 			Ternary:   pos,
-			Condition: newAstNode(n.cond, filename),
-			Left:      newAstNode(n.left, filename),
-			Right:     newAstNode(n.right, filename),
+			Condition: newExprNode(n.cond, filename),
+			Left:      newExprNode(n.left, filename),
+			Right:     newExprNode(n.right, filename),
 		}
 
 	case NODE_OR, NODE_AND, NODE_EQUAL, NODE_EQUALCI, NODE_EQUALCS,
@@ -313,44 +315,44 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 		NODE_ISNOTCI, NODE_ISNOTCS, NODE_ADD, NODE_SUBTRACT, NODE_CONCAT,
 		NODE_MULTIPLY, NODE_DIVIDE, NODE_REMAINDER:
 		return &ast.BinaryExpr{
-			Left:  newAstNode(n.left, filename),
+			Left:  newExprNode(n.left, filename),
 			OpPos: pos,
 			Op:    opToken(n.type_),
-			Right: newAstNode(n.right, filename),
+			Right: newExprNode(n.right, filename),
 		}
 
 	case NODE_NOT, NODE_MINUS, NODE_PLUS:
 		return &ast.UnaryExpr{
 			OpPos: pos,
 			Op:    opToken(n.type_),
-			X:     newAstNode(n.left, filename),
+			X:     newExprNode(n.left, filename),
 		}
 
 	case NODE_SUBSCRIPT:
 		return &ast.SubscriptExpr{
 			Lbrack: pos,
-			Left:   newAstNode(n.left, filename),
-			Right:  newAstNode(n.right, filename),
+			Left:   newExprNode(n.left, filename),
+			Right:  newExprNode(n.right, filename),
 		}
 
 	case NODE_SLICE:
 		return &ast.SliceExpr{
 			Lbrack: pos,
-			X:      newAstNode(n.left, filename),
-			Low:    newAstNode(n.rlist[0], filename),
-			High:   newAstNode(n.rlist[1], filename),
+			X:      newExprNode(n.left, filename),
+			Low:    newExprNode(n.rlist[0], filename),
+			High:   newExprNode(n.rlist[1], filename),
 		}
 
 	case NODE_CALL:
 		return &ast.CallExpr{
 			Lparen: pos,
-			Fun:    newAstNode(n.left, filename),
+			Fun:    newExprNode(n.left, filename),
 			Args:   newRlist(*n, filename),
 		}
 
 	case NODE_DOT:
 		return &ast.DotExpr{
-			Left:  newAstNode(n.left, filename),
+			Left:  newExprNode(n.left, filename),
 			Dot:   pos,
 			Right: newAstNode(n.right, filename).(*ast.Ident),
 		}
@@ -378,8 +380,8 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 		kvs := make([]ast.KeyValue, 0, len(entries))
 		for _, nn := range entries {
 			kv := nn.([]interface{})
-			k := newAstNode(kv[0].(*VimNode), filename)
-			v := newAstNode(kv[1].(*VimNode), filename)
+			k := newExprNode(kv[0].(*VimNode), filename)
+			v := newExprNode(kv[1].(*VimNode), filename)
 			kvs = append(kvs, ast.KeyValue{Key: k, Value: v})
 		}
 		return &ast.Dict{
@@ -434,18 +436,23 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 		n := n.value.(*VimNode)
 		return &ast.CurlyNameExpr{
 			CurlyNameExpr: pos,
-			Value:         newAstNode(n, filename),
+			Value:         newExprNode(n, filename),
 		}
 
 	case NODE_LAMBDA:
 		return &ast.LambdaExpr{
 			Lcurlybrace: pos,
 			Params:      newIdents(*n, filename),
-			Expr:        newAstNode(n.left, filename),
+			Expr:        newExprNode(n.left, filename),
 		}
 
 	}
 	panic(fmt.Errorf("Unknown node type: %v, node: %v", n.type_, n))
+}
+
+func newExprNode(n *VimNode, filename string) ast.Expr {
+	node, _ := newAstNode(n, filename).(ast.Expr)
+	return node
 }
 
 func newPos(p *pos, filename string) *ast.Pos {
@@ -508,7 +515,7 @@ func newBody(n VimNode, filename string) []ast.Statement {
 	}
 	for _, node := range n.body {
 		if node != nil { // conservative
-			body = append(body, newAstNode(node, filename))
+			body = append(body, newAstNode(node, filename).(ast.Statement))
 		}
 	}
 	return body
@@ -534,7 +541,7 @@ func newRlist(n VimNode, filename string) []ast.Expr {
 	}
 	for _, node := range n.rlist {
 		if node != nil { // conservative
-			exprs = append(exprs, newAstNode(node, filename))
+			exprs = append(exprs, newExprNode(node, filename))
 		}
 	}
 	return exprs
@@ -547,7 +554,7 @@ func newList(n VimNode, filename string) []ast.Expr {
 	}
 	for _, node := range n.list {
 		if node != nil { // conservative
-			list = append(list, newAstNode(node, filename))
+			list = append(list, newExprNode(node, filename))
 		}
 	}
 	return list
@@ -557,7 +564,7 @@ func newValues(n VimNode, filename string) []ast.Expr {
 	var values []ast.Expr
 	for _, v := range n.value.([]interface{}) {
 		n := v.(*VimNode)
-		values = append(values, newAstNode(n, filename))
+		values = append(values, newExprNode(n, filename))
 	}
 	return values
 }

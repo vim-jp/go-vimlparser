@@ -14,17 +14,19 @@ type Node interface {
 // Statement is the interface for statement (Ex command or Comment).
 type Statement interface {
 	Node
+	stmtNode()
 }
 
 // ExCommand is the interface for Ex-command.
 type ExCommand interface {
-	Node
+	Statement
 	Cmd() Cmd
 }
 
 // Expr is the interface for expression.
 type Expr interface {
 	Node
+	exprNode()
 }
 
 // File node represents a Vim script source file.
@@ -39,6 +41,7 @@ func (f *File) Pos() Pos { return f.Start }
 
 // vimlparser: COMMENT .str
 type Comment struct {
+	Statement
 	Quote Pos    // position of `"` starting the comment
 	Text  string // comment text (excluding '\n')
 }
@@ -480,7 +483,7 @@ type CurlyName struct {
 func (c *CurlyName) Pos() Pos { return c.CurlyName }
 
 type CurlyNamePart interface {
-	Node
+	Expr
 	IsCurlyExpr() bool
 }
 
@@ -522,3 +525,55 @@ type LambdaExpr struct {
 }
 
 func (i *LambdaExpr) Pos() Pos { return i.Lcurlybrace }
+
+// stmtNode() ensures that only ExComamnd and Comment nodes can be assigned to
+// an Statement.
+//
+func (*Break) stmtNode()      {}
+func (*Catch) stmtNode()      {}
+func (*Continue) stmtNode()   {}
+func (DelFunction) stmtNode() {}
+func (*EchoCmd) stmtNode()    {}
+func (*Echohl) stmtNode()     {}
+func (*Else) stmtNode()       {}
+func (*ElseIf) stmtNode()     {}
+func (*EndFor) stmtNode()     {}
+func (EndFunction) stmtNode() {}
+func (*EndIf) stmtNode()      {}
+func (*EndTry) stmtNode()     {}
+func (*EndWhile) stmtNode()   {}
+func (*ExCall) stmtNode()     {}
+func (Excmd) stmtNode()       {}
+func (*Execute) stmtNode()    {}
+func (*Finally) stmtNode()    {}
+func (*For) stmtNode()        {}
+func (Function) stmtNode()    {}
+func (*If) stmtNode()         {}
+func (*Let) stmtNode()        {}
+func (*LockVar) stmtNode()    {}
+func (*Return) stmtNode()     {}
+func (*Throw) stmtNode()      {}
+func (*Try) stmtNode()        {}
+func (*UnLet) stmtNode()      {}
+func (*UnLockVar) stmtNode()  {}
+func (*While) stmtNode()      {}
+
+func (*Comment) stmtNode() {}
+
+// exprNode() ensures that only expression nodes can be assigned to an Expr.
+//
+func (*TernaryExpr) exprNode()   {}
+func (*BinaryExpr) exprNode()    {}
+func (*UnaryExpr) exprNode()     {}
+func (*SubscriptExpr) exprNode() {}
+func (*SliceExpr) exprNode()     {}
+func (*CallExpr) exprNode()      {}
+func (*DotExpr) exprNode()       {}
+func (*BasicLit) exprNode()      {}
+func (*List) exprNode()          {}
+func (*Dict) exprNode()          {}
+func (*CurlyName) exprNode()     {}
+func (*CurlyNameLit) exprNode()  {}
+func (*CurlyNameExpr) exprNode() {}
+func (*Ident) exprNode()         {}
+func (*LambdaExpr) exprNode()    {}
