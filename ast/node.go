@@ -19,9 +19,8 @@ type Statement interface {
 
 // ExCommand is the interface for Ex-command.
 type ExCommand interface {
-	Node
+	Statement
 	Cmd() Cmd
-	stmtNode()
 }
 
 // Expr is the interface for expression.
@@ -42,6 +41,7 @@ func (f *File) Pos() Pos { return f.Start }
 
 // vimlparser: COMMENT .str
 type Comment struct {
+	Statement
 	Quote Pos    // position of `"` starting the comment
 	Text  string // comment text (excluding '\n')
 }
@@ -572,7 +572,6 @@ func (*DotExpr) exprNode()       {}
 func (*BasicLit) exprNode()      {}
 func (*List) exprNode()          {}
 func (*Dict) exprNode()          {}
-func (*KeyValue) exprNode()      {}
 func (*CurlyName) exprNode()     {}
 func (*CurlyNameLit) exprNode()  {}
 func (*CurlyNameExpr) exprNode() {}
