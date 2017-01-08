@@ -4,7 +4,7 @@ type InitializeParams struct {
 	ProcessID             int                `json:"processId,omitempty"`
 	RootPath              string             `json:"rootPath,omitempty"`
 	InitializationOptions InitializeOptions  `json:"initializationOptions,omitempty"`
-	Capabilities          ClientCapabilities `json:"capabilities",omitempty`
+	Capabilities          ClientCapabilities `json:"capabilities,omitempty"`
 	Trace                 string             `json:"trace,omitempty"`
 }
 
@@ -33,7 +33,7 @@ type ServerCapabilities struct {
 
 type TextDocumentItem struct {
 	URI        string `json:"uri"`
-	LanguageId string `json:"languageId"`
+	LanguageID string `json:"languageId"`
 	Version    int    `json:"version"`
 	Text       string `json:"text"`
 }

@@ -3,7 +3,6 @@ package langserver
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/haya14busa/go-vimlparser/ast"
@@ -25,13 +24,10 @@ func (h *LangHandler) handleTextDocumentSymbols(ctx context.Context, conn *jsonr
 		node, err := f.GetAst()
 		if err != nil {
 			return nil, err
-		} else {
-			return getDocumentSymbols(params, node), nil
 		}
-		return nil, nil
-	} else {
-		return nil, errors.New(fmt.Sprintf("% not open", params.TextDocument.URI))
+		return getDocumentSymbols(params, node), nil
 	}
+	return nil, fmt.Errorf("% not open", params.TextDocument.URI)
 }
 
 func getDocumentSymbols(params DocumentSymbolParams, node ast.Node) []SymbolInformation {

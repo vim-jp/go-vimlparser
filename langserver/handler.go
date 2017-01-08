@@ -28,7 +28,7 @@ type vimfile struct {
 	AstError error
 }
 
-func NewVimFile(textDocumentItem TextDocumentItem) (result *vimfile, error error) {
+func newVimFile(textDocumentItem TextDocumentItem) (result *vimfile, error error) {
 	return &vimfile{
 		TextDocumentItem: textDocumentItem,
 		Ast:              nil,

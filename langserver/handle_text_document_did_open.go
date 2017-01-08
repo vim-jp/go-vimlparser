@@ -17,11 +17,10 @@ func (h *LangHandler) handleTextDocumentDidOpen(ctx context.Context, conn *jsonr
 		return nil, err
 	}
 
-	f, err := NewVimFile(params.TextDocument)
+	f, err := newVimFile(params.TextDocument)
 	if err != nil {
 		return nil, err
-	} else {
-		h.files[params.TextDocument.URI] = f
-		return nil, nil
 	}
+	h.files[params.TextDocument.URI] = f
+	return nil, nil
 }
