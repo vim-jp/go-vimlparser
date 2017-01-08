@@ -27,7 +27,7 @@ func (h *LangHandler) handleTextDocumentSymbols(ctx context.Context, conn *jsonr
 		}
 		return getDocumentSymbols(params, node), nil
 	}
-	return nil, fmt.Errorf("% not open", params.TextDocument.URI)
+	return nil, fmt.Errorf("%s not open", params.TextDocument.URI)
 }
 
 func getDocumentSymbols(params DocumentSymbolParams, node ast.Node) []SymbolInformation {
