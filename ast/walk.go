@@ -71,6 +71,7 @@ func Walk(v Visitor, node Node) {
 
 	case *If:
 		Walk(v, n.Condition)
+		walkStmtList(v, n.Body)
 		for _, elseif := range n.ElseIf {
 			Walk(v, elseif)
 		}
