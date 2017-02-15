@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/haya14busa/go-vimlparser.svg?branch=master)](https://travis-ci.org/haya14busa/go-vimlparser)
 [![Coverage Status](https://coveralls.io/repos/github/haya14busa/go-vimlparser/badge.svg?branch=master)](https://coveralls.io/github/haya14busa/go-vimlparser?branch=master)
+[![Sourcegraph](https://sourcegraph.com/github.com/haya14busa/go-vimlparser/-/badge.svg)](https://sourcegraph.com/github.com/haya14busa/go-vimlparser?badge)
 [![GoDoc](https://godoc.org/github.com/haya14busa/go-vimlparser?status.svg)](https://godoc.org/github.com/haya14busa/go-vimlparser)
 
 This repository is the fork of https://github.com/ynkdir/vim-vimlparser and it provides Go-ish interface with performance improvement.
