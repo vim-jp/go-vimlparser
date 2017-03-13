@@ -147,6 +147,20 @@ func viml_string(obj interface{}) string {
 }
 
 func viml_has_key(obj interface{}, key interface{}) bool {
+	// Avoid using reflect as much as possible by listing type used as obj and
+	// use type switch.
+	switch o := obj.(type) {
+	case map[string]*Cmd:
+		_, ok := o[key.(string)]
+		return ok
+	case map[string]interface{}:
+		_, ok := o[key.(string)]
+		return ok
+	case map[int][]interface{}:
+		_, ok := o[key.(int)]
+		return ok
+	}
+	// fallback to reflect. Shoul be unreachable.
 	m := reflect.ValueOf(obj)
 	v := m.MapIndex(reflect.ValueOf(key))
 	return v.Kind() != reflect.Invalid
