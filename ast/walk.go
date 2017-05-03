@@ -198,6 +198,9 @@ func Walk(v Visitor, node Node) {
 	case *LambdaExpr:
 		walkIdentList(v, n.Params)
 
+	case *ParenExpr:
+		Walk(v, n.X)
+
 	default:
 		panic(fmt.Sprintf("ast.Walk: unexpected node type %T", n))
 	}

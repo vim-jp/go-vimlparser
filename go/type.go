@@ -310,6 +310,10 @@ func (self *Compiler) compile_dict(n *VimNode) string {
 	}
 }
 
+func (self *Compiler) compile_parenexpr(n *VimNode) string {
+	return self.compile(n.value.(*VimNode)).(string)
+}
+
 type ParseError struct {
 	Offset int
 	Line   int

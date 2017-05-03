@@ -94,6 +94,7 @@ var NODE_REG = 89
 var NODE_CURLYNAMEPART = 90
 var NODE_CURLYNAMEEXPR = 91
 var NODE_LAMBDA = 92
+var NODE_PARENEXPR = 93
 var TOKEN_EOF = 1
 var TOKEN_EOL = 2
 var TOKEN_SPACE = 3
@@ -328,6 +329,7 @@ func islower(c string) bool {
 // CURLYNAMEPART .value
 // CURLYNAMEEXPR .value
 // LAMBDA .rlist .left
+// PARENEXPR .value
 func (self *VimLParser) find_context(type_ int) int {
 	var i = 0
 	for _, node := range self.context {
@@ -1021,7 +1023,7 @@ func (self *VimLParser) separate_nextcmd() *pos {
 				panic(Err(viml_printf("unexpected character: %s", c), self.reader.getpos()))
 			}
 			self.reader.getn(1)
-		} else if c == "|" || c == "\n" || c == "\"" && !viml_eqregh(self.ea.cmd.flags, "\\<NOTRLCOM\\>") && (self.ea.cmd.name != "@" && self.ea.cmd.name != "*" || self.reader.getpos() != self.ea.argpos) && (self.ea.cmd.name != "redir" || self.reader.getpos().i != self.ea.argpos.i + 1 || pc != "@") {
+		} else if c == "|" || c == "\n" || (c == "\"" && !viml_eqregh(self.ea.cmd.flags, "\\<NOTRLCOM\\>") && ((self.ea.cmd.name != "@" && self.ea.cmd.name != "*") || self.reader.getpos() != self.ea.argpos) && (self.ea.cmd.name != "redir" || self.reader.getpos().i != self.ea.argpos.i + 1 || pc != "@")) {
 			var has_cpo_bar = false
 			// &cpoptions =~ 'b'
 			if (!has_cpo_bar || !viml_eqregh(self.ea.cmd.flags, "\\<USECTRLV\\>")) && pc == "\\" {
@@ -1356,7 +1358,7 @@ func (self *VimLParser) parse_cmd_let() {
 	var s1 = self.reader.peekn(1)
 	var s2 = self.reader.peekn(2)
 	// :let {var-name} ..
-	if self.ends_excmds(s1) || s2 != "+=" && s2 != "-=" && s2 != ".=" && s1 != "=" {
+	if self.ends_excmds(s1) || (s2 != "+=" && s2 != "-=" && s2 != ".=" && s1 != "=") {
 		self.reader.seek_set(pos)
 		self.parse_cmd_common()
 		return
@@ -1842,7 +1844,7 @@ func (self *ExprTokenizer) get2() *ExprToken {
 		if r.p(0) == "." && isdigit(r.p(1)) {
 			s += r.getn(1)
 			s += r.read_digit()
-			if (r.p(0) == "E" || r.p(0) == "e") && (isdigit(r.p(1)) || (r.p(1) == "-" || r.p(1) == "+") && isdigit(r.p(2))) {
+			if (r.p(0) == "E" || r.p(0) == "e") && (isdigit(r.p(1)) || ((r.p(1) == "-" || r.p(1) == "+") && isdigit(r.p(2)))) {
 				s += r.getn(2)
 				s += r.read_digit()
 			}
@@ -2770,7 +2772,9 @@ func (self *ExprParser) parse_expr9() *VimNode {
 		}
 		return node
 	} else if token.type_ == TOKEN_POPEN {
-		node = self.parse_expr1()
+		node = Node(NODE_PARENEXPR)
+		node.pos = token.pos
+		node.value = self.parse_expr1()
 		token = self.tokenizer.get()
 		if token.type_ != TOKEN_PCLOSE {
 			panic(Err(viml_printf("unexpected token: %s", token.value), token.pos))
@@ -3360,6 +3364,8 @@ func (self *Compiler) compile(node *VimNode) interface{} {
 		return self.compile_curlynameexpr(node)
 	} else if node.type_ == NODE_LAMBDA {
 		return self.compile_lambda(node)
+	} else if node.type_ == NODE_PARENEXPR {
+		return self.compile_parenexpr(node)
 	} else {
 		panic(viml_printf("Compiler: unknown node: %s", viml_string(node)))
 	}

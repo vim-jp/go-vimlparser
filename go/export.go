@@ -446,6 +446,13 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			Expr:        newExprNode(n.left, filename),
 		}
 
+	case NODE_PARENEXPR:
+		n := n.value.(*VimNode)
+		return &ast.ParenExpr{
+			Lparen: pos,
+			X:      newExprNode(n, filename),
+		}
+
 	}
 	panic(fmt.Errorf("Unknown node type: %v, node: %v", n.type_, n))
 }

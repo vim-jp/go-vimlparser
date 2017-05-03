@@ -526,6 +526,15 @@ type LambdaExpr struct {
 
 func (i *LambdaExpr) Pos() Pos { return i.Lcurlybrace }
 
+// ParenExpr node represents a parenthesized expression.
+// vimlparsr: PARENEXPR .value
+type ParenExpr struct {
+	Lparen Pos  // position of "("
+	X      Expr // parenthesized expression
+}
+
+func (i *ParenExpr) Pos() Pos { return i.Lparen }
+
 // stmtNode() ensures that only ExComamnd and Comment nodes can be assigned to
 // an Statement.
 //
@@ -577,3 +586,4 @@ func (*CurlyNameLit) exprNode()  {}
 func (*CurlyNameExpr) exprNode() {}
 func (*Ident) exprNode()         {}
 func (*LambdaExpr) exprNode()    {}
+func (*ParenExpr) exprNode()     {}

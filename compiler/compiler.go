@@ -437,6 +437,8 @@ func (c *Compiler) compileExpr(node ast.Expr) string {
 			params = append(params, p.Name)
 		}
 		return fmt.Sprintf("(lambda (%s) %s)", strings.Join(params, " "), c.compileExpr(n.Expr))
+	case *ast.ParenExpr:
+		return c.compileExpr(n.X)
 	}
 	return ""
 }
