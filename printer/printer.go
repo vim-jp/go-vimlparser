@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 
 	"github.com/haya14busa/go-vimlparser/ast"
 )
@@ -41,6 +42,23 @@ func (p *printer) init(cfg *Config) {
 	p.Config = *cfg
 }
 
+func (p *printer) print(args ...interface{}) {
+	for _, arg := range args {
+		switch arg := arg.(type) {
+		case *ast.BasicLit:
+			p.writeString(arg.Value)
+		case *ast.Ident:
+			p.writeString(arg.Name)
+		default:
+			log.Fatal(fmt.Errorf("print: unsupported type %T", arg))
+		}
+	}
+}
+
+func (p *printer) writeString(s string) {
+	p.output = append(p.output, s...)
+}
+
 func (p *printer) printNode(node ast.Node) error {
 	switch n := node.(type) {
 	case *ast.File:
@@ -59,7 +77,27 @@ func (p *printer) file(f *ast.File) error {
 }
 
 func (p *printer) expr(expr ast.Expr) error {
-	return errors.New("Not implemented: printer.expr")
+	switch n := expr.(type) {
+	// case *ast.TernaryExpr:
+	// case *ast.BinaryExpr:
+	// case *ast.UnaryExpr:
+	// case *ast.SubscriptExpr:
+	// case *ast.SliceExpr:
+	// case *ast.CallExpr:
+	// case *ast.DotExpr:
+	// case *ast.List:
+	// case *ast.Dict:
+	// case *ast.CurlyName:
+	// case *ast.CurlyNameLit:
+	// case *ast.CurlyNameExpr:
+	case *ast.BasicLit, *ast.Ident:
+		p.print(n)
+	// case *ast.LambdaExpr:
+	// case *ast.ParenExpr:
+	default:
+		return fmt.Errorf("unsupported expr type %T", n)
+	}
+	return nil
 }
 
 func (p *printer) stmt(node ast.Statement) error {
