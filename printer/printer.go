@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 
 	"github.com/haya14busa/go-vimlparser/ast"
 )
@@ -40,19 +39,6 @@ func (p *printer) init(cfg *Config) {
 		cfg = &Config{}
 	}
 	p.Config = *cfg
-}
-
-func (p *printer) print(args ...interface{}) {
-	for _, arg := range args {
-		switch arg := arg.(type) {
-		case *ast.BasicLit:
-			p.writeString(arg.Value)
-		case *ast.Ident:
-			p.writeString(arg.Name)
-		default:
-			log.Fatal(fmt.Errorf("print: unsupported type %T", arg))
-		}
-	}
 }
 
 func (p *printer) writeString(s string) {
@@ -90,8 +76,10 @@ func (p *printer) expr(expr ast.Expr) error {
 	// case *ast.CurlyName:
 	// case *ast.CurlyNameLit:
 	// case *ast.CurlyNameExpr:
-	case *ast.BasicLit, *ast.Ident:
-		p.print(n)
+	case *ast.BasicLit:
+		p.writeString(n.Value)
+	case *ast.Ident:
+		p.writeString(n.Name)
 	// case *ast.LambdaExpr:
 	// case *ast.ParenExpr:
 	default:
