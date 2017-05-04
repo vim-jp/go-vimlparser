@@ -35,10 +35,9 @@ type printer struct {
 }
 
 func (p *printer) init(cfg *Config) {
-	if cfg == nil {
-		cfg = &Config{}
+	if cfg != nil {
+		p.Config = *cfg
 	}
-	p.Config = *cfg
 }
 
 func (p *printer) writeString(s string) {
