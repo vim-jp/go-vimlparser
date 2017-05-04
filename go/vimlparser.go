@@ -3,6 +3,7 @@
 // DO NOT EDIT!
 
 package vimlparser
+
 var NODE_TOPLEVEL = 1
 var NODE_COMMENT = 2
 var NODE_EXCMD = 3
@@ -161,6 +162,7 @@ var TOKEN_DOTDOTDOT = 63
 var TOKEN_SHARP = 64
 var TOKEN_ARROW = 65
 var MAX_FUNC_ARGS = 20
+
 func isalpha(c string) bool {
 	return viml_eqregh(c, "^[A-Za-z]$")
 }
@@ -430,82 +432,82 @@ func (self *VimLParser) parse_command_modifiers() {
 		self.reader.skip_white()
 		if viml_stridx("aboveleft", k) == 0 && len(k) >= 3 {
 			// abo\%[veleft]
-			modifiers = append(modifiers, map[string]interface{}{"name":"aboveleft"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "aboveleft"})
 		} else if viml_stridx("belowright", k) == 0 && len(k) >= 3 {
 			// bel\%[owright]
-			modifiers = append(modifiers, map[string]interface{}{"name":"belowright"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "belowright"})
 		} else if viml_stridx("browse", k) == 0 && len(k) >= 3 {
 			// bro\%[wse]
-			modifiers = append(modifiers, map[string]interface{}{"name":"browse"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "browse"})
 		} else if viml_stridx("botright", k) == 0 && len(k) >= 2 {
 			// bo\%[tright]
-			modifiers = append(modifiers, map[string]interface{}{"name":"botright"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "botright"})
 		} else if viml_stridx("confirm", k) == 0 && len(k) >= 4 {
 			// conf\%[irm]
-			modifiers = append(modifiers, map[string]interface{}{"name":"confirm"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "confirm"})
 		} else if viml_stridx("keepmarks", k) == 0 && len(k) >= 3 {
 			// kee\%[pmarks]
-			modifiers = append(modifiers, map[string]interface{}{"name":"keepmarks"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "keepmarks"})
 		} else if viml_stridx("keepalt", k) == 0 && len(k) >= 5 {
 			// keepa\%[lt]
-			modifiers = append(modifiers, map[string]interface{}{"name":"keepalt"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "keepalt"})
 		} else if viml_stridx("keepjumps", k) == 0 && len(k) >= 5 {
 			// keepj\%[umps]
-			modifiers = append(modifiers, map[string]interface{}{"name":"keepjumps"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "keepjumps"})
 		} else if viml_stridx("keeppatterns", k) == 0 && len(k) >= 5 {
 			// keepp\%[atterns]
-			modifiers = append(modifiers, map[string]interface{}{"name":"keeppatterns"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "keeppatterns"})
 		} else if viml_stridx("hide", k) == 0 && len(k) >= 3 {
 			//hid\%[e]
 			if self.ends_excmds(c) {
 				break
 			}
-			modifiers = append(modifiers, map[string]interface{}{"name":"hide"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "hide"})
 		} else if viml_stridx("lockmarks", k) == 0 && len(k) >= 3 {
 			// loc\%[kmarks]
-			modifiers = append(modifiers, map[string]interface{}{"name":"lockmarks"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "lockmarks"})
 		} else if viml_stridx("leftabove", k) == 0 && len(k) >= 5 {
 			// lefta\%[bove]
-			modifiers = append(modifiers, map[string]interface{}{"name":"leftabove"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "leftabove"})
 		} else if viml_stridx("noautocmd", k) == 0 && len(k) >= 3 {
 			// noa\%[utocmd]
-			modifiers = append(modifiers, map[string]interface{}{"name":"noautocmd"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "noautocmd"})
 		} else if viml_stridx("rightbelow", k) == 0 && len(k) >= 6 {
 			//rightb\%[elow]
-			modifiers = append(modifiers, map[string]interface{}{"name":"rightbelow"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "rightbelow"})
 		} else if viml_stridx("sandbox", k) == 0 && len(k) >= 3 {
 			// san\%[dbox]
-			modifiers = append(modifiers, map[string]interface{}{"name":"sandbox"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "sandbox"})
 		} else if viml_stridx("silent", k) == 0 && len(k) >= 3 {
 			// sil\%[ent]
 			if c == "!" {
 				self.reader.get()
-				modifiers = append(modifiers, map[string]interface{}{"name":"silent", "bang":1})
+				modifiers = append(modifiers, map[string]interface{}{"name": "silent", "bang": 1})
 			} else {
-				modifiers = append(modifiers, map[string]interface{}{"name":"silent", "bang":0})
+				modifiers = append(modifiers, map[string]interface{}{"name": "silent", "bang": 0})
 			}
 		} else if k == "tab" {
 			// tab
 			if d != "" {
-				modifiers = append(modifiers, map[string]interface{}{"name":"tab", "count":viml_str2nr(d, 10)})
+				modifiers = append(modifiers, map[string]interface{}{"name": "tab", "count": viml_str2nr(d, 10)})
 			} else {
-				modifiers = append(modifiers, map[string]interface{}{"name":"tab"})
+				modifiers = append(modifiers, map[string]interface{}{"name": "tab"})
 			}
 		} else if viml_stridx("topleft", k) == 0 && len(k) >= 2 {
 			// to\%[pleft]
-			modifiers = append(modifiers, map[string]interface{}{"name":"topleft"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "topleft"})
 		} else if viml_stridx("unsilent", k) == 0 && len(k) >= 3 {
 			// uns\%[ilent]
-			modifiers = append(modifiers, map[string]interface{}{"name":"unsilent"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "unsilent"})
 		} else if viml_stridx("vertical", k) == 0 && len(k) >= 4 {
 			// vert\%[ical]
-			modifiers = append(modifiers, map[string]interface{}{"name":"vertical"})
+			modifiers = append(modifiers, map[string]interface{}{"name": "vertical"})
 		} else if viml_stridx("verbose", k) == 0 && len(k) >= 4 {
 			// verb\%[ose]
 			if d != "" {
-				modifiers = append(modifiers, map[string]interface{}{"name":"verbose", "count":viml_str2nr(d, 10)})
+				modifiers = append(modifiers, map[string]interface{}{"name": "verbose", "count": viml_str2nr(d, 10)})
 			} else {
-				modifiers = append(modifiers, map[string]interface{}{"name":"verbose", "count":1})
+				modifiers = append(modifiers, map[string]interface{}{"name": "verbose", "count": 1})
 			}
 		} else {
 			self.reader.seek_set(pos)
@@ -536,7 +538,7 @@ func (self *VimLParser) parse_range() {
 				if m == "" {
 					break
 				}
-				tokens = append(tokens, "'" + m)
+				tokens = append(tokens, "'"+m)
 			} else if c == "/" {
 				self.reader.getn(1)
 				var pattern, _ = self.parse_pattern(c)
@@ -549,7 +551,7 @@ func (self *VimLParser) parse_range() {
 				m = self.reader.p(1)
 				if m == "&" || m == "?" || m == "/" {
 					self.reader.seek_cur(2)
-					tokens = append(tokens, "\\" + m)
+					tokens = append(tokens, "\\"+m)
 				} else {
 					panic(Err("E10: \\\\ should be followed by /, ? or &", self.reader.getpos()))
 				}
@@ -1023,7 +1025,7 @@ func (self *VimLParser) separate_nextcmd() *pos {
 				panic(Err(viml_printf("unexpected character: %s", c), self.reader.getpos()))
 			}
 			self.reader.getn(1)
-		} else if c == "|" || c == "\n" || (c == "\"" && !viml_eqregh(self.ea.cmd.flags, "\\<NOTRLCOM\\>") && ((self.ea.cmd.name != "@" && self.ea.cmd.name != "*") || self.reader.getpos() != self.ea.argpos) && (self.ea.cmd.name != "redir" || self.reader.getpos().i != self.ea.argpos.i + 1 || pc != "@")) {
+		} else if c == "|" || c == "\n" || (c == "\"" && !viml_eqregh(self.ea.cmd.flags, "\\<NOTRLCOM\\>") && ((self.ea.cmd.name != "@" && self.ea.cmd.name != "*") || self.reader.getpos() != self.ea.argpos) && (self.ea.cmd.name != "redir" || self.reader.getpos().i != self.ea.argpos.i+1 || pc != "@")) {
 			var has_cpo_bar = false
 			// &cpoptions =~ 'b'
 			if (!has_cpo_bar || !viml_eqregh(self.ea.cmd.flags, "\\<USECTRLV\\>")) && pc == "\\" {
@@ -3033,7 +3035,7 @@ func (self *StringReader) p(i int) string {
 	if self.i >= len(self.buf) {
 		return "<EOF>"
 	}
-	return self.buf[self.i + i]
+	return self.buf[self.i+i]
 }
 
 func (self *StringReader) peek() string {
@@ -3048,7 +3050,7 @@ func (self *StringReader) get() string {
 		return "<EOF>"
 	}
 	self.i += 1
-	return self.buf[self.i - 1]
+	return self.buf[self.i-1]
 }
 
 func (self *StringReader) peekn(n int) string {
@@ -3085,7 +3087,7 @@ func (self *StringReader) readline() string {
 
 func (self *StringReader) getstr(begin *pos, end *pos) string {
 	var r = ""
-	for _, i := range viml_range(begin.i, end.i - 1) {
+	for _, i := range viml_range(begin.i, end.i-1) {
 		if i >= len(self.buf) {
 			break
 		}
@@ -3393,7 +3395,13 @@ func (self *Compiler) compile_excmd(node *VimNode) {
 
 func (self *Compiler) compile_function(node *VimNode) {
 	var left = self.compile(node.left).(string)
-	var rlist = func() []string {;var ss []string;for _, vval := range node.rlist {;ss = append(ss, self.compile(vval).(string));};return ss;}()
+	var rlist = func() []string {
+		var ss []string
+		for _, vval := range node.rlist {
+			ss = append(ss, self.compile(vval).(string))
+		}
+		return ss
+	}()
 	if !viml_empty(rlist) && rlist[len(rlist)-1] == "..." {
 		rlist[len(rlist)-1] = ". ..."
 	}
@@ -3429,7 +3437,13 @@ func (self *Compiler) compile_let(node *VimNode) {
 	if node.left != nil {
 		left = self.compile(node.left).(string)
 	} else {
-		left = viml_join(func() []string {;var ss []string;for _, vval := range node.list {;ss = append(ss, self.compile(vval).(string));};return ss;}(), " ")
+		left = viml_join(func() []string {
+			var ss []string
+			for _, vval := range node.list {
+				ss = append(ss, self.compile(vval).(string))
+			}
+			return ss
+		}(), " ")
 		if node.rest != nil {
 			left += " . " + self.compile(node.rest).(string)
 		}
@@ -3440,12 +3454,24 @@ func (self *Compiler) compile_let(node *VimNode) {
 }
 
 func (self *Compiler) compile_unlet(node *VimNode) {
-	var list = func() []string {;var ss []string;for _, vval := range node.list {;ss = append(ss, self.compile(vval).(string));};return ss;}()
+	var list = func() []string {
+		var ss []string
+		for _, vval := range node.list {
+			ss = append(ss, self.compile(vval).(string))
+		}
+		return ss
+	}()
 	self.out("(unlet %s)", viml_join(list, " "))
 }
 
 func (self *Compiler) compile_lockvar(node *VimNode) {
-	var list = func() []string {;var ss []string;for _, vval := range node.list {;ss = append(ss, self.compile(vval).(string));};return ss;}()
+	var list = func() []string {
+		var ss []string
+		for _, vval := range node.list {
+			ss = append(ss, self.compile(vval).(string))
+		}
+		return ss
+	}()
 	if node.depth == 0 {
 		self.out("(lockvar %s)", viml_join(list, " "))
 	} else {
@@ -3454,7 +3480,13 @@ func (self *Compiler) compile_lockvar(node *VimNode) {
 }
 
 func (self *Compiler) compile_unlockvar(node *VimNode) {
-	var list = func() []string {;var ss []string;for _, vval := range node.list {;ss = append(ss, self.compile(vval).(string));};return ss;}()
+	var list = func() []string {
+		var ss []string
+		for _, vval := range node.list {
+			ss = append(ss, self.compile(vval).(string))
+		}
+		return ss
+	}()
 	if node.depth == 0 {
 		self.out("(unlockvar %s)", viml_join(list, " "))
 	} else {
@@ -3497,7 +3529,13 @@ func (self *Compiler) compile_for(node *VimNode) {
 	if node.left != nil {
 		left = self.compile(node.left).(string)
 	} else {
-		left = viml_join(func() []string {;var ss []string;for _, vval := range node.list {;ss = append(ss, self.compile(vval).(string));};return ss;}(), " ")
+		left = viml_join(func() []string {
+			var ss []string
+			for _, vval := range node.list {
+				ss = append(ss, self.compile(vval).(string))
+			}
+			return ss
+		}(), " ")
 		if node.rest != nil {
 			left += " . " + self.compile(node.rest).(string)
 		}
@@ -3551,12 +3589,24 @@ func (self *Compiler) compile_throw(node *VimNode) {
 }
 
 func (self *Compiler) compile_echo(node *VimNode) {
-	var list = func() []string {;var ss []string;for _, vval := range node.list {;ss = append(ss, self.compile(vval).(string));};return ss;}()
+	var list = func() []string {
+		var ss []string
+		for _, vval := range node.list {
+			ss = append(ss, self.compile(vval).(string))
+		}
+		return ss
+	}()
 	self.out("(echo %s)", viml_join(list, " "))
 }
 
 func (self *Compiler) compile_echon(node *VimNode) {
-	var list = func() []string {;var ss []string;for _, vval := range node.list {;ss = append(ss, self.compile(vval).(string));};return ss;}()
+	var list = func() []string {
+		var ss []string
+		for _, vval := range node.list {
+			ss = append(ss, self.compile(vval).(string))
+		}
+		return ss
+	}()
 	self.out("(echon %s)", viml_join(list, " "))
 }
 
@@ -3565,17 +3615,35 @@ func (self *Compiler) compile_echohl(node *VimNode) {
 }
 
 func (self *Compiler) compile_echomsg(node *VimNode) {
-	var list = func() []string {;var ss []string;for _, vval := range node.list {;ss = append(ss, self.compile(vval).(string));};return ss;}()
+	var list = func() []string {
+		var ss []string
+		for _, vval := range node.list {
+			ss = append(ss, self.compile(vval).(string))
+		}
+		return ss
+	}()
 	self.out("(echomsg %s)", viml_join(list, " "))
 }
 
 func (self *Compiler) compile_echoerr(node *VimNode) {
-	var list = func() []string {;var ss []string;for _, vval := range node.list {;ss = append(ss, self.compile(vval).(string));};return ss;}()
+	var list = func() []string {
+		var ss []string
+		for _, vval := range node.list {
+			ss = append(ss, self.compile(vval).(string))
+		}
+		return ss
+	}()
 	self.out("(echoerr %s)", viml_join(list, " "))
 }
 
 func (self *Compiler) compile_execute(node *VimNode) {
-	var list = func() []string {;var ss []string;for _, vval := range node.list {;ss = append(ss, self.compile(vval).(string));};return ss;}()
+	var list = func() []string {
+		var ss []string
+		for _, vval := range node.list {
+			ss = append(ss, self.compile(vval).(string))
+		}
+		return ss
+	}()
 	self.out("(execute %s)", viml_join(list, " "))
 }
 
@@ -3752,8 +3820,20 @@ func (self *Compiler) compile_subscript(node *VimNode) string {
 }
 
 func (self *Compiler) compile_slice(node *VimNode) string {
-	var r0 = func() string { if node.rlist[0] == nil {return "nil"} else {return self.compile(node.rlist[0]).(string)} }()
-	var r1 = func() string { if node.rlist[1] == nil {return "nil"} else {return self.compile(node.rlist[1]).(string)} }()
+	var r0 = func() string {
+		if node.rlist[0] == nil {
+			return "nil"
+		} else {
+			return self.compile(node.rlist[0]).(string)
+		}
+	}()
+	var r1 = func() string {
+		if node.rlist[1] == nil {
+			return "nil"
+		} else {
+			return self.compile(node.rlist[1]).(string)
+		}
+	}()
 	return viml_printf("(slice %s %s %s)", self.compile(node.left).(string), r0, r1)
 }
 
@@ -3762,7 +3842,13 @@ func (self *Compiler) compile_dot(node *VimNode) string {
 }
 
 func (self *Compiler) compile_call(node *VimNode) string {
-	var rlist = func() []string {;var ss []string;for _, vval := range node.rlist {;ss = append(ss, self.compile(vval).(string));};return ss;}()
+	var rlist = func() []string {
+		var ss []string
+		for _, vval := range node.rlist {
+			ss = append(ss, self.compile(vval).(string))
+		}
+		return ss
+	}()
 	if viml_empty(rlist) {
 		return viml_printf("(%s)", self.compile(node.left).(string))
 	} else {
@@ -3799,7 +3885,13 @@ func (self *Compiler) compile_curlynamepart(node *VimNode) string {
 }
 
 func (self *Compiler) compile_lambda(node *VimNode) string {
-	var rlist = func() []string {;var ss []string;for _, vval := range node.rlist {;ss = append(ss, self.compile(vval).(string));};return ss;}()
+	var rlist = func() []string {
+		var ss []string
+		for _, vval := range node.rlist {
+			ss = append(ss, self.compile(vval).(string))
+		}
+		return ss
+	}()
 	return viml_printf("(lambda (%s) %s)", viml_join(rlist, " "), self.compile(node.left).(string))
 }
 

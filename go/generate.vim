@@ -19,6 +19,7 @@ function! s:generate()
     let c = s:GoCompiler.new(ImportTypedefs())
     let lines = c.compile(ast)
     call writefile(head + lines, gofile)
+    call system(printf('gofmt -w -s %s', gofile))
   catch
     echoerr substitute(v:throwpoint, '\.\.\zs\d\+', '\=s:numtoname(submatch(0))', 'g') . "\n" . v:exception
   endtry
