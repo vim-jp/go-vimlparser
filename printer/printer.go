@@ -1,5 +1,7 @@
 // Package printer implements printing of AST nodes.
 //
+// ref: go/printer
+//
 // This is WIP package. DO NOT USE.
 package printer
 
@@ -9,6 +11,13 @@ import (
 	"io"
 
 	"github.com/haya14busa/go-vimlparser/ast"
+	"github.com/haya14busa/go-vimlparser/token"
+)
+
+type whiteSpace byte
+
+const (
+	blank = whiteSpace(' ')
 )
 
 // A Config node controls the output of Fprint.
@@ -44,47 +53,30 @@ func (p *printer) writeString(s string) {
 	p.output = append(p.output, s...)
 }
 
+func (p *printer) token(t token.Token) {
+	p.writeString(t.String())
+}
+
+func (p *printer) printWhite(x whiteSpace) {
+	p.output = append(p.output, byte(x))
+}
+
 func (p *printer) printNode(node ast.Node) error {
 	switch n := node.(type) {
 	case *ast.File:
 		return p.file(n)
 	case ast.Expr:
-		return p.expr(n)
+		p.expr(n)
 	case ast.Statement:
 		return p.stmt(n)
 	default:
 		return fmt.Errorf("go-vimlparser/printer: unsupported node type %T", node)
 	}
+	return nil
 }
 
 func (p *printer) file(f *ast.File) error {
 	return errors.New("Not implemented: printer.file")
-}
-
-func (p *printer) expr(expr ast.Expr) error {
-	switch n := expr.(type) {
-	// case *ast.TernaryExpr:
-	// case *ast.BinaryExpr:
-	// case *ast.UnaryExpr:
-	// case *ast.SubscriptExpr:
-	// case *ast.SliceExpr:
-	// case *ast.CallExpr:
-	// case *ast.DotExpr:
-	// case *ast.List:
-	// case *ast.Dict:
-	// case *ast.CurlyName:
-	// case *ast.CurlyNameLit:
-	// case *ast.CurlyNameExpr:
-	case *ast.BasicLit:
-		p.writeString(n.Value)
-	case *ast.Ident:
-		p.writeString(n.Name)
-	// case *ast.LambdaExpr:
-	// case *ast.ParenExpr:
-	default:
-		return fmt.Errorf("unsupported expr type %T", n)
-	}
-	return nil
 }
 
 func (p *printer) stmt(node ast.Statement) error {
