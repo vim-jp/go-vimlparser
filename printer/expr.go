@@ -18,7 +18,11 @@ func (p *printer) expr1(expr ast.Expr, prec1 int) {
 		p.binaryExpr(x, prec1)
 	case *ast.UnaryExpr:
 		p.unaryExpr(x, prec1)
-	// case *ast.SubscriptExpr:
+	case *ast.SubscriptExpr:
+		p.expr1(x.Left, opprec(x))
+		p.token(token.SQOPEN)
+		p.expr(x.Right)
+		p.token(token.SQCLOSE)
 	// case *ast.SliceExpr:
 	// case *ast.CallExpr:
 	// case *ast.DotExpr:

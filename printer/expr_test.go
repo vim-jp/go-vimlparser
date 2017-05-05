@@ -27,6 +27,7 @@ func TestFprint_expr(t *testing.T) {
 		{in: `1+(2*3)`, want: `1 + (2 * 3)`},            // ParenExpr
 		{in: `(((x+(1))))`, want: `(x + (1))`},          // ParenExpr
 		{in: `x+1==14 ||-1`, want: `x + 1 == 14 || -1`}, // BinaryExpr
+		{in: `x[ y ]`, want: `x[y]`},                    // SubscriptExpr
 	}
 
 	for _, tt := range tests {
