@@ -49,6 +49,8 @@ func (p *printer) binaryExpr(x *ast.BinaryExpr, prec1 int) {
 	prec := opprec(x)
 	if prec < prec1 {
 		// parenthesis needed
+		// Note: The parser inserts an ast.ParenExpr node; thus this case
+		//       can only occur if the AST is created in a different way.
 		p.token(token.POPEN)
 		p.expr(x)
 		p.token(token.PCLOSE)
@@ -66,6 +68,8 @@ func (p *printer) unaryExpr(x *ast.UnaryExpr, prec1 int) {
 	prec := opprec(x)
 	if prec < prec1 {
 		// parenthesis needed
+		// Note: this case can only occcur if the AST is created manually and
+		// the code should invalid code.
 		p.token(token.POPEN)
 		p.expr(x)
 		p.token(token.PCLOSE)
