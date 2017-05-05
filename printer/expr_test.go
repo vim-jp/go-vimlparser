@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	vimlparser "github.com/haya14busa/go-vimlparser"
+	"github.com/haya14busa/go-vimlparser/ast"
+	"github.com/haya14busa/go-vimlparser/token"
 )
 
 func TestFprint_expr(t *testing.T) {
@@ -46,5 +48,41 @@ func TestFprint_expr(t *testing.T) {
 		if got := buf.String(); got != tt.want {
 			t.Errorf("got: %v, want: %v", got, tt.want)
 		}
+	}
+}
+
+func TestFprint_expr_insert_paren_to_binary(t *testing.T) {
+	want := `(x + y) * z`
+	buf := new(bytes.Buffer)
+	left := &ast.BinaryExpr{
+		Left:  &ast.Ident{Name: "x"},
+		Op:    token.PLUS,
+		Right: &ast.Ident{Name: "y"},
+	}
+	node := &ast.BinaryExpr{
+		Left:  left,
+		Op:    token.STAR,
+		Right: &ast.Ident{Name: "z"},
+	}
+	if err := Fprint(buf, node, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := buf.String(); got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestFprint_expr_insert_paren_to_unary(t *testing.T) {
+	want := `(-x)[y]`
+	buf := new(bytes.Buffer)
+	node := &ast.SubscriptExpr{
+		Left:  &ast.UnaryExpr{Op: token.MINUS, X: &ast.Ident{Name: "x"}},
+		Right: &ast.Ident{Name: "y"},
+	}
+	if err := Fprint(buf, node, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := buf.String(); got != want {
+		t.Errorf("got %q, want %q", got, want)
 	}
 }
