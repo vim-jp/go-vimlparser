@@ -135,6 +135,9 @@ func (c *Compiler) compileExcommand(node ast.ExCommand) error {
 		c.compileEchohl(n)
 	case *ast.Execute:
 		c.compileExecute(n)
+	case *ast.EndFor, *ast.EndIf, *ast.Finally, *ast.EndFunction, *ast.EndTry,
+		*ast.EndWhile, *ast.Catch, *ast.Else, *ast.ElseIf:
+		return fmt.Errorf("compileExcommand: unexpected Node: %v", n)
 	}
 	return nil
 }

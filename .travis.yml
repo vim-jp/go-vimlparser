@@ -10,6 +10,7 @@ install:
   - go get github.com/golang/lint/golint
   - go get honnef.co/go/unused/cmd/unused
   - go get github.com/haya14busa/goverage
+  - go get github.com/haya14busa/gosum/cmd/gosumcheck
 
 before_script:
   - vim --cmd version --cmd quit
@@ -19,6 +20,7 @@ script:
   - goverage -coverprofile=coverage.txt ./...
   - vim -u NONE -N --cmd "let &rtp .= ',' . getcwd()" -S go/generate.vim -c ":q"
   - (! git diff | grep '^') # check diff
+  - gosumcheck ./...
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
