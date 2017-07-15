@@ -472,6 +472,9 @@ func (self *VimLParser) parse_command_modifiers() {
 		} else if viml_stridx("noautocmd", k) == 0 && len(k) >= 3 {
 			// noa\%[utocmd]
 			modifiers = append(modifiers, map[string]interface{}{"name": "noautocmd"})
+		} else if viml_stridx("noswapfile", k) == 0 && len(k) >= 3 {
+			// :nos\%[wapfile]
+			modifiers = append(modifiers, map[string]interface{}{"name": "noswapfile"})
 		} else if viml_stridx("rightbelow", k) == 0 && len(k) >= 6 {
 			//rightb\%[elow]
 			modifiers = append(modifiers, map[string]interface{}{"name": "rightbelow"})
@@ -1799,6 +1802,8 @@ func (self *VimLParser) parse_cmd_syntax() {
 	self.add_node(node)
 }
 
+// To find new builtin_commands, run the below script.
+// $ scripts/update_builtin_commands.sh /path/to/vim/src/ex_cmds.h
 func (self *ExprTokenizer) __init__(reader *StringReader) {
 	self.reader = reader
 }
