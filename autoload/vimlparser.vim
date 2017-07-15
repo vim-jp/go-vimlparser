@@ -18,7 +18,7 @@ function! vimlparser#test(input, ...)
     else
       let l:neovim = 0
     endif
-    let i = type(a:input) == 1 && filereadable(a:input) ? readfile(a:input) : a:input
+    let i = type(a:input) == 1 && filereadable(a:input) ? readfile(a:input) : [a:input]
     let r = s:StringReader.new(i)
     let p = s:VimLParser.new(l:neovim)
     let c = s:Compiler.new()
@@ -569,6 +569,8 @@ function! s:VimLParser.parse_command_modifiers()
       call add(modifiers, {'name': 'leftabove'})
     elseif stridx('noautocmd', k) == 0 && len(k) >= 3 " noa\%[utocmd]
       call add(modifiers, {'name': 'noautocmd'})
+    elseif stridx('noswapfile', k) == 0 && len(k) >= 3 " :nos\%[wapfile]
+      call add(modifiers, {'name': 'noswapfile'})
     elseif stridx('rightbelow', k) == 0 && len(k) >= 6 "rightb\%[elow]
       call add(modifiers, {'name': 'rightbelow'})
     elseif stridx('sandbox', k) == 0 && len(k) >= 3 " san\%[dbox]
@@ -1964,17 +1966,21 @@ function! s:VimLParser.parse_cmd_syntax()
 endfunction
 
 let s:VimLParser.neovim_additional_commands = [
-      \ {'name': 'tnoremap', 'minlen': 8, 'flags': 'EXTRA|TRLBAR|NOTRLCOM|USECTRLV|CMDWIN', 'parser': 'parse_cmd_common'}]
+      \ {'name': 'tnoremap', 'minlen': 8, 'flags': 'EXTRA|TRLBAR|NOTRLCOM|USECTRLV|CMDWIN', 'parser': 'parse_cmd_common'},
+      \ {'name': 'rshada', 'minlen': 3, 'flags': 'BANG|FILE1|TRLBAR|CMDWIN', 'parser': 'parse_cmd_common'},
+      \ {'name': 'wshada', 'minlen': 3, 'flags': 'BANG|FILE1|TRLBAR|CMDWIN', 'parser': 'parse_cmd_common'}]
 
 let s:VimLParser.neovim_removed_commands = [
-      \ {"name":"Print", "minlen":1, "flags":"RANGE|WHOLEFOLD|COUNT|EXFLAGS|TRLBAR|CMDWIN", "parser":"parse_cmd_common"},
-      \ {"name":"fixdel", "minlen":3, "flags":"TRLBAR|CMDWIN", "parser":"parse_cmd_common"},
-      \ {"name":"helpfind", "minlen":5, "flags":"EXTRA|NOTRLCOM", "parser":"parse_cmd_common"},
-      \ {"name":"open", "minlen":1, "flags":"RANGE|BANG|EXTRA", "parser":"parse_cmd_common"},
-      \ {"name":"shell", "minlen":2, "flags":"TRLBAR|CMDWIN", "parser":"parse_cmd_common"},
-      \ {"name":"tearoff", "minlen":2, "flags":"NEEDARG|EXTRA|TRLBAR|NOTRLCOM|CMDWIN", "parser":"parse_cmd_common"},
-      \ {"name":"gvim", "minlen":2, "flags":"BANG|FILES|EDITCMD|ARGOPT|TRLBAR|CMDWIN", "parser":"parse_cmd_common"}]
+      \ {'name': 'Print', 'minlen':1, 'flags': 'RANGE|WHOLEFOLD|COUNT|EXFLAGS|TRLBAR|CMDWIN', 'parser': 'parse_cmd_common'},
+      \ {'name': 'fixdel', 'minlen':3, 'flags': 'TRLBAR|CMDWIN', 'parser': 'parse_cmd_common'},
+      \ {'name': 'helpfind', 'minlen':5, 'flags': 'EXTRA|NOTRLCOM', 'parser': 'parse_cmd_common'},
+      \ {'name': 'open', 'minlen':1, 'flags': 'RANGE|BANG|EXTRA', 'parser': 'parse_cmd_common'},
+      \ {'name': 'shell', 'minlen':2, 'flags': 'TRLBAR|CMDWIN', 'parser': 'parse_cmd_common'},
+      \ {'name': 'tearoff', 'minlen':2, 'flags': 'NEEDARG|EXTRA|TRLBAR|NOTRLCOM|CMDWIN', 'parser': 'parse_cmd_common'},
+      \ {'name': 'gvim', 'minlen':2, 'flags': 'BANG|FILES|EDITCMD|ARGOPT|TRLBAR|CMDWIN', 'parser': 'parse_cmd_common'}]
 
+" To find new builtin_commands, run the below script.
+" $ scripts/update_builtin_commands.sh /path/to/vim/src/ex_cmds.h
 let s:VimLParser.builtin_commands = [
       \ {'name': 'append', 'minlen': 1, 'flags': 'BANG|RANGE|ZEROR|TRLBAR|CMDWIN|MODIFY', 'parser': 'parse_cmd_append'},
       \ {'name': 'abbreviate', 'minlen': 2, 'flags': 'EXTRA|TRLBAR|NOTRLCOM|USECTRLV|CMDWIN', 'parser': 'parse_cmd_common'},
@@ -2514,6 +2520,10 @@ let s:VimLParser.builtin_commands = [
       \ {'flags': 'BANG|FILE1|NEEDARG|TRLBAR|SBOXOK|CMDWIN', 'minlen': 2, 'name': 'packadd', 'parser': 'parse_cmd_common'},
       \ {'flags': 'BANG|TRLBAR|SBOXOK|CMDWIN', 'minlen': 5, 'name': 'packloadall', 'parser': 'parse_cmd_common'},
       \ {'flags': 'TRLBAR|CMDWIN|SBOXOK', 'minlen': 3, 'name': 'smile', 'parser': 'parse_cmd_common'},
+      \ {'flags': 'RANGE|EXTRA|NEEDARG|CMDWIN', 'minlen': 3, 'name': 'pyx', 'parser': 'parse_cmd_common'},
+      \ {'flags': 'RANGE|DFLALL|EXTRA|NEEDARG|CMDWIN', 'minlen': 4, 'name': 'pyxdo', 'parser': 'parse_cmd_common'},
+      \ {'flags': 'RANGE|EXTRA|NEEDARG|CMDWIN', 'minlen': 7, 'name': 'pythonx', 'parser': 'parse_cmd_common'},
+      \ {'flags': 'RANGE|FILE1|NEEDARG|CMDWIN', 'minlen': 4, 'name': 'pyxfile', 'parser': 'parse_cmd_common'},
       \]
 
 let s:ExprTokenizer = {}
