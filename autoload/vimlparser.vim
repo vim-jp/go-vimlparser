@@ -3709,6 +3709,7 @@ function! s:LvalueParser.parse_lv8()
         endif
       endif
       let left = node
+      unlet node
     elseif !s:iswhite(c) && token.type == s:TOKEN_DOT
       let node = self.parse_dot(token, left)
       if node is s:NIL
@@ -3716,6 +3717,7 @@ function! s:LvalueParser.parse_lv8()
         break
       endif
       let left = node
+      unlet node
     else
       call self.reader.seek_set(pos)
       break
