@@ -1240,7 +1240,6 @@ function! s:VimLParser.parse_cmd_loadkeymap()
 endfunction
 
 function! s:VimLParser.parse_cmd_lua()
-  let cmdline = ''
   let lines = []
   call self.reader.skip_white()
   if self.reader.peekn(2) ==# '<<'

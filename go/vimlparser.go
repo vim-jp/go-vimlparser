@@ -1112,7 +1112,6 @@ func (self *VimLParser) parse_cmd_loadkeymap() {
 }
 
 func (self *VimLParser) parse_cmd_lua() {
-	var cmdline = ""
 	var lines = []interface{}{}
 	self.reader.skip_white()
 	if self.reader.peekn(2) == "<<" {
@@ -1123,7 +1122,7 @@ func (self *VimLParser) parse_cmd_lua() {
 			m = "."
 		}
 		self.reader.setpos(self.ea.linepos)
-		cmdline = self.reader.getn(-1)
+		var cmdline = self.reader.getn(-1)
 		lines = []interface{}{cmdline}
 		self.reader.get()
 		for true {
@@ -1139,7 +1138,7 @@ func (self *VimLParser) parse_cmd_lua() {
 		}
 	} else {
 		self.reader.setpos(self.ea.linepos)
-		cmdline = self.reader.getn(-1)
+		var cmdline = self.reader.getn(-1)
 		lines = []interface{}{cmdline}
 	}
 	var node = Node(NODE_EXCMD)
