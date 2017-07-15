@@ -520,7 +520,6 @@ func (self *VimLParser) parse_command_modifiers() {
 // FIXME:
 func (self *VimLParser) parse_range() {
 	var tokens = []interface{}{}
-	var m = ""
 	for true {
 		for true {
 			self.reader.skip_white()
@@ -534,7 +533,7 @@ func (self *VimLParser) parse_range() {
 				tokens = append(tokens, self.reader.getn(1))
 			} else if c == "'" {
 				self.reader.getn(1)
-				m = self.reader.getn(1)
+				var m = self.reader.getn(1)
 				if m == "" {
 					break
 				}
@@ -548,7 +547,7 @@ func (self *VimLParser) parse_range() {
 				var pattern, _ = self.parse_pattern(c)
 				tokens = append(tokens, pattern)
 			} else if c == "\\" {
-				m = self.reader.p(1)
+				var m = self.reader.p(1)
 				if m == "&" || m == "?" || m == "/" {
 					self.reader.seek_cur(2)
 					tokens = append(tokens, "\\"+m)
