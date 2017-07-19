@@ -747,7 +747,7 @@ function! s:VimLParser.parse_command()
     let self.ea.forceit = s:FALSE
   endif
 
-  if self.ea.cmd.flags !~# '\<BANG\>' && self.ea.forceit && self.ea.cmd.flags !~# 'USERCMD'
+  if self.ea.cmd.flags !~# '\<BANG\>' && self.ea.forceit && self.ea.cmd.flags !~# '\<USERCMD\>'
     throw s:Err('E477: No ! allowed', self.ea.cmdpos)
   endif
 
@@ -798,16 +798,9 @@ function! s:VimLParser.parse_command()
     call self.parse_argcmd()
   endif
 
-  " call self[self.ea.cmd.parser]()
   call self._parse_command(self.ea.cmd.parser)
 endfunction
 
-" let s:parsers = sort(keys(filter(copy(s:VimLParser), { k -> k =~# '\v^parse_(win)?cmd' })))
-" for s:parser in s:parsers
-"   echo printf("elseif a:parser == '%s'", s:parser)
-"   echo printf("  call self.%s()", s:parser)
-" endfor
-" echo 'endif'
 function! s:VimLParser._parse_command(parser) abort
   if a:parser == 'parse_cmd_append'
     call self.parse_cmd_append()
@@ -901,6 +894,8 @@ function! s:VimLParser._parse_command(parser) abort
     call self.parse_wincmd()
   elseif a:parser == 'parse_cmd_syntax'
     call self.parse_cmd_syntax()
+  else
+    throw printf('unknown parser: %s', string(a:parser))
   endif
 endfunction
 
@@ -4039,50 +4034,73 @@ function! s:Compiler.compile(node)
     return self.compile_toplevel(a:node)
   elseif a:node.type == s:NODE_COMMENT
     call self.compile_comment(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_EXCMD
     call self.compile_excmd(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_FUNCTION
     call self.compile_function(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_DELFUNCTION
     call self.compile_delfunction(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_RETURN
     call self.compile_return(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_EXCALL
     call self.compile_excall(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_LET
     call self.compile_let(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_UNLET
     call self.compile_unlet(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_LOCKVAR
     call self.compile_lockvar(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_UNLOCKVAR
     call self.compile_unlockvar(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_IF
     call self.compile_if(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_WHILE
     call self.compile_while(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_FOR
     call self.compile_for(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_CONTINUE
     call self.compile_continue(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_BREAK
     call self.compile_break(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_TRY
     call self.compile_try(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_THROW
     call self.compile_throw(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_ECHO
     call self.compile_echo(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_ECHON
     call self.compile_echon(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_ECHOHL
     call self.compile_echohl(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_ECHOMSG
     call self.compile_echomsg(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_ECHOERR
     call self.compile_echoerr(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_EXECUTE
     call self.compile_execute(a:node)
+    return s:NIL
   elseif a:node.type == s:NODE_TERNARY
     return self.compile_ternary(a:node)
   elseif a:node.type == s:NODE_OR
