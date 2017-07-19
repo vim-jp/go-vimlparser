@@ -644,7 +644,7 @@ func (self *VimLParser) parse_command() {
 	} else {
 		self.ea.forceit = false
 	}
-	if !viml_eqregh(self.ea.cmd.flags, "\\<BANG\\>") && self.ea.forceit && !viml_eqregh(self.ea.cmd.flags, "USERCMD") {
+	if !viml_eqregh(self.ea.cmd.flags, "\\<BANG\\>") && self.ea.forceit && !viml_eqregh(self.ea.cmd.flags, "\\<USERCMD\\>") {
 		panic(Err("E477: No ! allowed", self.ea.cmdpos))
 	}
 	if self.ea.cmd.name != "!" {
@@ -687,16 +687,9 @@ func (self *VimLParser) parse_command() {
 	if viml_eqregh(self.ea.cmd.flags, "\\<EDITCMD\\>") && !self.ea.usefilter {
 		self.parse_argcmd()
 	}
-	// call self[self.ea.cmd.parser]()
 	self._parse_command(self.ea.cmd.parser)
 }
 
-// let s:parsers = sort(keys(filter(copy(s:VimLParser), { k -> k =~# '\v^parse_(win)?cmd' })))
-// for s:parser in s:parsers
-//   echo printf("elseif a:parser == '%s'", s:parser)
-//   echo printf("  call self.%s()", s:parser)
-// endfor
-// echo 'endif'
 func (self *VimLParser) _parse_command(parser string) {
 	if parser == "parse_cmd_append" {
 		self.parse_cmd_append()
@@ -790,6 +783,8 @@ func (self *VimLParser) _parse_command(parser string) {
 		self.parse_wincmd()
 	} else if parser == "parse_cmd_syntax" {
 		self.parse_cmd_syntax()
+	} else {
+		panic(viml_printf("unknown parser: %s", viml_string(parser)))
 	}
 }
 
@@ -1112,7 +1107,6 @@ func (self *VimLParser) parse_cmd_loadkeymap() {
 }
 
 func (self *VimLParser) parse_cmd_lua() {
-	var cmdline = ""
 	var lines = []interface{}{}
 	self.reader.skip_white()
 	if self.reader.peekn(2) == "<<" {
@@ -1123,7 +1117,7 @@ func (self *VimLParser) parse_cmd_lua() {
 			m = "."
 		}
 		self.reader.setpos(self.ea.linepos)
-		cmdline = self.reader.getn(-1)
+		var cmdline = self.reader.getn(-1)
 		lines = []interface{}{cmdline}
 		self.reader.get()
 		for true {
@@ -1139,7 +1133,7 @@ func (self *VimLParser) parse_cmd_lua() {
 		}
 	} else {
 		self.reader.setpos(self.ea.linepos)
-		cmdline = self.reader.getn(-1)
+		var cmdline = self.reader.getn(-1)
 		lines = []interface{}{cmdline}
 	}
 	var node = Node(NODE_EXCMD)
@@ -3210,50 +3204,73 @@ func (self *Compiler) compile(node *VimNode) interface{} {
 		return self.compile_toplevel(node)
 	} else if node.type_ == NODE_COMMENT {
 		self.compile_comment(node)
+		return nil
 	} else if node.type_ == NODE_EXCMD {
 		self.compile_excmd(node)
+		return nil
 	} else if node.type_ == NODE_FUNCTION {
 		self.compile_function(node)
+		return nil
 	} else if node.type_ == NODE_DELFUNCTION {
 		self.compile_delfunction(node)
+		return nil
 	} else if node.type_ == NODE_RETURN {
 		self.compile_return(node)
+		return nil
 	} else if node.type_ == NODE_EXCALL {
 		self.compile_excall(node)
+		return nil
 	} else if node.type_ == NODE_LET {
 		self.compile_let(node)
+		return nil
 	} else if node.type_ == NODE_UNLET {
 		self.compile_unlet(node)
+		return nil
 	} else if node.type_ == NODE_LOCKVAR {
 		self.compile_lockvar(node)
+		return nil
 	} else if node.type_ == NODE_UNLOCKVAR {
 		self.compile_unlockvar(node)
+		return nil
 	} else if node.type_ == NODE_IF {
 		self.compile_if(node)
+		return nil
 	} else if node.type_ == NODE_WHILE {
 		self.compile_while(node)
+		return nil
 	} else if node.type_ == NODE_FOR {
 		self.compile_for(node)
+		return nil
 	} else if node.type_ == NODE_CONTINUE {
 		self.compile_continue(node)
+		return nil
 	} else if node.type_ == NODE_BREAK {
 		self.compile_break(node)
+		return nil
 	} else if node.type_ == NODE_TRY {
 		self.compile_try(node)
+		return nil
 	} else if node.type_ == NODE_THROW {
 		self.compile_throw(node)
+		return nil
 	} else if node.type_ == NODE_ECHO {
 		self.compile_echo(node)
+		return nil
 	} else if node.type_ == NODE_ECHON {
 		self.compile_echon(node)
+		return nil
 	} else if node.type_ == NODE_ECHOHL {
 		self.compile_echohl(node)
+		return nil
 	} else if node.type_ == NODE_ECHOMSG {
 		self.compile_echomsg(node)
+		return nil
 	} else if node.type_ == NODE_ECHOERR {
 		self.compile_echoerr(node)
+		return nil
 	} else if node.type_ == NODE_EXECUTE {
 		self.compile_execute(node)
+		return nil
 	} else if node.type_ == NODE_TERNARY {
 		return self.compile_ternary(node)
 	} else if node.type_ == NODE_OR {
