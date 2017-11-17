@@ -941,7 +941,7 @@ function! s:VimLParser.find_command()
     endif
   endfor
 
-  if self.neovim
+  if self.neovim  
     for x in self.neovim_additional_commands
       if stridx(x.name, name) == 0 && len(name) >= x.minlen
         unlet cmd
@@ -958,7 +958,7 @@ function! s:VimLParser.find_command()
       endif
     endfor
   endif
-
+  
   " FIXME: user defined command
   if (cmd is s:NIL || cmd.name ==# 'Print') && name =~# '^[A-Z]'
     let name .= self.reader.read_alnum()
@@ -1959,7 +1959,6 @@ function! s:VimLParser.parse_cmd_syntax()
 endfunction
 
 let s:VimLParser.neovim_additional_commands = [
-      \ {'name': 'tnoremap', 'minlen': 8, 'flags': 'EXTRA|TRLBAR|NOTRLCOM|USECTRLV|CMDWIN', 'parser': 'parse_cmd_common'},
       \ {'name': 'rshada', 'minlen': 3, 'flags': 'BANG|FILE1|TRLBAR|CMDWIN', 'parser': 'parse_cmd_common'},
       \ {'name': 'wshada', 'minlen': 3, 'flags': 'BANG|FILE1|TRLBAR|CMDWIN', 'parser': 'parse_cmd_common'}]
 
@@ -2517,6 +2516,11 @@ let s:VimLParser.builtin_commands = [
       \ {'flags': 'RANGE|DFLALL|EXTRA|NEEDARG|CMDWIN', 'minlen': 4, 'name': 'pyxdo', 'parser': 'parse_cmd_common'},
       \ {'flags': 'RANGE|EXTRA|NEEDARG|CMDWIN', 'minlen': 7, 'name': 'pythonx', 'parser': 'parse_cmd_common'},
       \ {'flags': 'RANGE|FILE1|NEEDARG|CMDWIN', 'minlen': 4, 'name': 'pyxfile', 'parser': 'parse_cmd_common'},
+      \ {'flags': 'RANGE|BANG|FILES|CMDWIN', 'minlen': 3, 'name': 'terminal', 'parser': 'parse_cmd_common'},
+      \ {'flags': 'EXTRA|TRLBAR|NOTRLCOM|USECTRLV|CMDWIN', 'minlen': 3, 'name': 'tmap', 'parser': 'parse_cmd_common'},
+      \ {'flags': 'EXTRA|TRLBAR|CMDWIN', 'minlen': 5, 'name': 'tmapclear', 'parser': 'parse_cmd_common'},
+      \ {'flags': 'EXTRA|TRLBAR|NOTRLCOM|USECTRLV|CMDWIN', 'minlen': 3, 'name': 'tnoremap', 'parser': 'parse_cmd_common'},
+      \ {'flags': 'EXTRA|TRLBAR|NOTRLCOM|USECTRLV|CMDWIN', 'minlen': 5, 'name': 'tunmap', 'parser': 'parse_cmd_common'},
       \]
 
 let s:ExprTokenizer = {}

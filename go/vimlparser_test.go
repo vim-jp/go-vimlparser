@@ -57,9 +57,9 @@ func TestNewVimLParser(t *testing.T) {
 func TestVimLParser_parse_empty(t *testing.T) {
 	defer recovert(t)
 	ins := [][]string{
-		[]string{},
-		[]string{""},
-		[]string{"", ""},
+		{},
+		{""},
+		{"", ""},
 	}
 	for _, in := range ins {
 		NewVimLParser(false).parse(NewStringReader(in))

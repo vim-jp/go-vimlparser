@@ -6,9 +6,6 @@ go:
 
 install:
   - go get -d -v -t ./...
-  - go get github.com/mattn/goveralls
-  - go get github.com/golang/lint/golint
-  - go get honnef.co/go/unused/cmd/unused
   - go get github.com/haya14busa/goverage
   - go get github.com/haya14busa/gosum/cmd/gosumcheck
 
@@ -18,7 +15,7 @@ before_script:
 script:
   - go test -v -race ./...
   - goverage -coverprofile=coverage.txt ./...
-  - vim -u NONE -N --cmd "let &rtp .= ',' . getcwd()" -S go/generate.vim -c ":q"
+  - bash go/generate.sh
   - (! git diff | grep '^') # check diff
   - gosumcheck ./...
 
