@@ -6,9 +6,6 @@ go:
 
 install:
   - go get -d -v -t ./...
-  - go get github.com/mattn/goveralls
-  - go get github.com/golang/lint/golint
-  - go get honnef.co/go/unused/cmd/unused
   - go get github.com/haya14busa/goverage
   - go get github.com/haya14busa/gosum/cmd/gosumcheck
 
