@@ -174,10 +174,9 @@ func NewLvalueParser(reader *StringReader) *LvalueParser {
 }
 
 type StringReader struct {
-	i      int
-	pos    []pos
-	buf    []string
-	offset []int
+	i   int
+	pos []pos
+	buf []string
 }
 
 func NewStringReader(lines []string) *StringReader {
