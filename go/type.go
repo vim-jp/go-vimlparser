@@ -86,9 +86,10 @@ type lhs struct {
 }
 
 type pos struct {
-	i    int
-	lnum int
-	col  int
+	i      int
+	lnum   int
+	col    int
+	offset int
 }
 
 // Node returns new VimNode.
@@ -173,9 +174,10 @@ func NewLvalueParser(reader *StringReader) *LvalueParser {
 }
 
 type StringReader struct {
-	i   int
-	pos []pos
-	buf []string
+	i      int
+	pos    []pos
+	buf    []string
+	offset []int
 }
 
 func NewStringReader(lines []string) *StringReader {
@@ -192,13 +194,15 @@ func (self *StringReader) __init__(lines []string) {
 	self.buf = make([]string, 0, size)
 	self.pos = make([]pos, 0, size+1) // +1 for EOF
 	var lnum = 0
+	var offset = 0
 	for lnum < len(lines) {
 		var col = 0
 		for _, r := range lines[lnum] {
 			c := string(r)
 			self.buf = append(self.buf, c)
-			self.pos = append(self.pos, pos{lnum: lnum + 1, col: col + 1})
+			self.pos = append(self.pos, pos{lnum: lnum + 1, col: col + 1, offset: offset})
 			col += len(c)
+			offset += len(c)
 		}
 		for lnum+1 < len(lines) && viml_eqregh(lines[lnum+1], "^\\s*\\\\") {
 			var skip = true
@@ -214,15 +218,18 @@ func (self *StringReader) __init__(lines []string) {
 					self.pos = append(self.pos, pos{lnum: lnum + 2, col: col + 1})
 				}
 				col += len(c)
+				offset += len(c)
 			}
 			lnum += 1
+			offset += 1
 		}
 		self.buf = append(self.buf, "<EOL>")
-		self.pos = append(self.pos, pos{lnum: lnum + 1, col: col + 1})
+		self.pos = append(self.pos, pos{lnum: lnum + 1, col: col + 1, offset: offset})
 		lnum += 1
+		offset += 1
 	}
 	// for <EOF>
-	self.pos = append(self.pos, pos{lnum: lnum + 1, col: 0})
+	self.pos = append(self.pos, pos{lnum: lnum + 1, col: 0, offset: offset})
 	self.i = 0
 }
 
