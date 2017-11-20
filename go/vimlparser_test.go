@@ -197,3 +197,43 @@ func testParseVimLParser(t testing.TB) {
 	n := NewVimLParser(false).parse(NewStringReader(lines))
 	c.compile(n)
 }
+
+func TestVimLParser_offset(t *testing.T) {
+	defer recovert(t)
+	const src = `
+
+function! F()
+  let x =
+\ 1
+
+  let x = "
+  \1
+	\2 <- tab
+  \3 マルチバイト
+  \4"
+endfunction
+
+" END
+`
+	const want = `function! F()
+  let x =
+\ 1
+
+  let x = "
+  \1
+	\2 <- tab
+  \3 マルチバイト
+  \4"
+endfunction`
+
+	n := NewVimLParser(false).parse(NewStringReader(strings.Split(src, "\n")))
+	f := n.body[0]
+	start := f.pos
+	end := f.endfunction.pos
+	endfExArg := f.endfunction.ea
+	end.offset += endfExArg.argpos.offset - endfExArg.cmdpos.offset
+
+	if got := src[start.offset:end.offset]; got != want {
+		t.Errorf("got:\n%v\nwant:\n%v", got, want)
+	}
+}
