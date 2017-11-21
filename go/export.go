@@ -467,7 +467,7 @@ func newPos(p *pos, filename string) *ast.Pos {
 		return nil
 	}
 	return &ast.Pos{
-		Offset:   p.i,
+		Offset:   p.offset,
 		Line:     p.lnum,
 		Column:   p.col,
 		Filename: filename,
