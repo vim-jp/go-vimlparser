@@ -1401,7 +1401,7 @@ func (self *VimLParser) parse_heredoc() *VimNode {
 		if self.reader.peek() == "<EOF>" {
 			break
 		}
-		pos = self.reader.getpos()
+		var pos = self.reader.getpos()
 		var line = self.reader.getn(-1)
 		if line == node.op {
 			return node

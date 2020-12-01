@@ -561,7 +561,9 @@ function s:GoCompiler.compile_while(node)
   endif
   call self.out('for %s{', cond)
   call self.incindent("\t")
+  call self.inscope()
   call self.compile_body(a:node.body)
+  call self.descope()
   call self.decindent()
   call self.out('}')
 endfunction
