@@ -100,7 +100,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			FuncCall: newAstNode(n.left, filename).(*ast.CallExpr),
 		}
 
-	case NODE_LET:
+	case NODE_LET, NODE_CONST:
 		return &ast.Let{
 			Let:   pos,
 			ExArg: newExArg(*n.ea, filename),

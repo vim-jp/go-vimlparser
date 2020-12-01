@@ -119,6 +119,7 @@ func (f *ExCall) Pos() Pos { return f.ExCall }
 func (f *ExCall) Cmd() Cmd { return *f.ExArg.Cmd }
 
 // vimlparser: LET .ea .op .left .list .rest .right
+// vimlparser: CONST .ea .op .left .list .rest .right
 type Let struct {
 	Let   Pos    // position of starting the :let
 	ExArg ExArg  // Ex command arg
