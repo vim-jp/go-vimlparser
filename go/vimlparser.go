@@ -1370,7 +1370,7 @@ func (self *VimLParser) parse_cmd_call() {
 	self.add_node(node)
 }
 
-func (self *VimLParser) parse_heredoc() {
+func (self *VimLParser) parse_heredoc() *VimNode {
 	var node = Node(NODE_HEREDOC)
 	node.pos = self.ea.cmdpos
 	node.op = ""
@@ -1820,7 +1820,7 @@ func (self *VimLParser) parse_lvalue() *VimNode {
 }
 
 // TODO: merge with s:VimLParser.parse_lvalue()
-func (self *VimLParser) parse_constlvalue() {
+func (self *VimLParser) parse_constlvalue() *VimNode {
 	var p = NewLvalueParser(self.reader)
 	var node = p.parse()
 	if node.type_ == NODE_IDENTIFIER {
@@ -1891,7 +1891,7 @@ func (self *VimLParser) parse_letlhs() *lhs {
 }
 
 // TODO: merge with s:VimLParser.parse_letlhs() ?
-func (self *VimLParser) parse_constlhs() {
+func (self *VimLParser) parse_constlhs() *lhs {
 	var lhs = &lhs{}
 	var tokenizer = NewExprTokenizer(self.reader)
 	if tokenizer.peek().type_ == TOKEN_SQOPEN {
@@ -2327,7 +2327,7 @@ func (self *ExprTokenizer) get_dstring() string {
 	return s
 }
 
-func (self *ExprTokenizer) parse_dict_literal_key() {
+func (self *ExprTokenizer) parse_dict_literal_key() *VimNode {
 	self.reader.skip_white()
 	var c = self.reader.peek()
 	if !isalnum(c) && c != "_" && c != "-" {
@@ -2829,7 +2829,7 @@ func (self *ExprParser) parse_expr8() *VimNode {
 	return left
 }
 
-func (self *ExprParser) parse_rlist() {
+func (self *ExprParser) parse_rlist() []*VimNode {
 	var rlist = []interface{}{}
 	var token = self.tokenizer.peek()
 	if self.tokenizer.peek().type_ == TOKEN_PCLOSE {
@@ -3103,7 +3103,7 @@ func (self *ExprParser) parse_dot(token *ExprToken, left *VimNode) *VimNode {
 
 // CONCAT
 //   str  ".." expr6         => (concat str expr6)
-func (self *ExprParser) parse_concat(token, left) {
+func (self *ExprParser) parse_concat(token *ExprToken, left *VimNode) *VimNode {
 	if left.type_ != NODE_IDENTIFIER && left.type_ != NODE_CURLYNAME && left.type_ != NODE_DICT && left.type_ != NODE_SUBSCRIPT && left.type_ != NODE_CALL && left.type_ != NODE_DOT {
 		return nil
 	}
@@ -3424,7 +3424,7 @@ func (self *StringReader) read_odigit() string {
 	return r
 }
 
-func (self *StringReader) read_blob() {
+func (self *StringReader) read_blob() string {
 	var r = ""
 	for {
 		var s = self.peekn(2)
@@ -3449,7 +3449,7 @@ func (self *StringReader) read_xdigit() string {
 	return r
 }
 
-func (self *StringReader) read_bdigit() {
+func (self *StringReader) read_bdigit() string {
 	var r = ""
 	for self.peekn(1) == "0" || self.peekn(1) == "1" {
 		r += self.getn(1)
@@ -3799,7 +3799,7 @@ func (self *Compiler) compile_excall(node *VimNode) {
 	self.out("(call %s)", self.compile(node.left).(string))
 }
 
-func (self *Compiler) compile_eval(node) {
+func (self *Compiler) compile_eval(node *VimNode) {
 	self.out("(eval %s)", self.compile(node.left).(string))
 }
 
@@ -3825,7 +3825,7 @@ func (self *Compiler) compile_let(node *VimNode) {
 }
 
 // TODO: merge with s:Compiler.compile_let() ?
-func (self *Compiler) compile_const(node) {
+func (self *Compiler) compile_const(node *VimNode) {
 	var left = ""
 	if node.left != nil {
 		left = self.compile(node.left).(string)
@@ -4234,7 +4234,7 @@ func (self *Compiler) compile_dot(node *VimNode) string {
 	return viml_printf("(dot %s %s)", self.compile(node.left).(string), self.compile(node.right))
 }
 
-func (self *Compiler) compile_method(node) {
+func (self *Compiler) compile_method(node *VimNode) string {
 	return viml_printf("(method %s %s)", self.compile(node.left).(string), self.compile(node.right))
 }
 
@@ -4257,7 +4257,7 @@ func (self *Compiler) compile_number(node *VimNode) string {
 	return node.value.(string)
 }
 
-func (self *Compiler) compile_blob(node) {
+func (self *Compiler) compile_blob(node *VimNode) string {
 	return node.value.(string)
 }
 
@@ -4285,7 +4285,7 @@ func (self *Compiler) compile_curlynamepart(node *VimNode) string {
 	return node.value.(string)
 }
 
-func (self *Compiler) escape_string(str) {
+func (self *Compiler) escape_string(str string) string {
 	var m = map[string]interface{}{"\n": "\\n", "\t": "\\t", "\r": "\\r"}
 	var out = "\""
 	for _, i := range viml_range(len(str)) {
@@ -4311,7 +4311,7 @@ func (self *Compiler) compile_lambda(node *VimNode) string {
 	return viml_printf("(lambda (%s) %s)", viml_join(rlist, " "), self.compile(node.left).(string))
 }
 
-func (self *Compiler) compile_heredoc(node) {
+func (self *Compiler) compile_heredoc(node *VimNode) string {
 	if viml_empty(node.rlist) {
 		var rlist = "(list)"
 	} else {
