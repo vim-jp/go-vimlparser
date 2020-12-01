@@ -769,7 +769,7 @@ function s:GoCompiler.compile_isci(node)
 endfunction
 
 function s:GoCompiler.compile_iscs(node)
-  throw 'NotImplemented: is#'
+  return self.compile_op2(a:node, '==')
 endfunction
 
 function s:GoCompiler.compile_isnot(node)
@@ -781,7 +781,7 @@ function s:GoCompiler.compile_isnotci(node)
 endfunction
 
 function s:GoCompiler.compile_isnotcs(node)
-  throw 'NotImplemented: isnot#'
+  return self.compile_op2(a:node, '!=')
 endfunction
 
 function s:GoCompiler.compile_add(node)
