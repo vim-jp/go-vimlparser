@@ -40,19 +40,20 @@ type Cmd struct {
 }
 
 type VimNode struct {
-	type_ int // type -> type_
-	pos   *pos
-	left  *VimNode
-	right *VimNode
-	cond  *VimNode
-	rest  *VimNode
-	list  []*VimNode
-	rlist []*VimNode
-	body  []*VimNode
-	op    string
-	str   string
-	depth int
-	value interface{}
+	type_        int // type -> type_
+	pos          *pos
+	left         *VimNode
+	right        *VimNode
+	cond         *VimNode
+	rest         *VimNode
+	list         []*VimNode
+	rlist        []*VimNode
+	default_args []*VimNode
+	body         []*VimNode
+	op           string
+	str          string
+	depth        int
+	value        interface{}
 
 	ea   *ExArg
 	attr *FuncAttr
