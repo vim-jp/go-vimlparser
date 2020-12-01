@@ -4299,12 +4299,14 @@ func (self *Compiler) compile_curlynamepart(node *VimNode) string {
 }
 
 func (self *Compiler) escape_string(str string) string {
-	var m = map[string]interface{}{"\n": "\\n", "\t": "\\t", "\r": "\\r"}
 	var out = "\""
-	for _, i := range viml_range(0, len(str)) {
-		var c = str[i]
-		if viml_has_key(m, c) {
-			out += m[c]
+	for _, c := range viml_split(str, "\\zs") {
+		if c == "\n" {
+			out += "\\n"
+		} else if c == "\t" {
+			out += "\\t"
+		} else if c == "\r" {
+			out += "\\r"
 		} else {
 			out += c
 		}

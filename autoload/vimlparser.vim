@@ -5581,12 +5581,14 @@ function! s:Compiler.compile_curlynameexpr(node) abort
 endfunction
 
 function! s:Compiler.escape_string(str) abort
-  let m = {"\n": '\n', "\t": '\t', "\r": '\r'}
   let out = '"'
-  for i in range(len(a:str))
-    let c = a:str[i]
-    if has_key(m, c)
-      let out .= m[c]
+  for c in split(a:str, '\zs')
+    if c ==# "\n"
+      let out .= '\n'
+    elseif c ==# "\t"
+      let out .= '\t'
+    elseif c ==# "\r"
+      let out .= '\r'
     else
       let out .= c
     endif
