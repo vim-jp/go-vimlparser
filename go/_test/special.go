@@ -35,6 +35,9 @@ node.attr.dict = true
 // skip
 // end skip
 // do not skip
+node.rlist = []*VimNode{}
+node.list = []*VimNode{}
+node.depth = 0
 node.list = self.parse_lvaluelist()
 node.depth = hoge
 node.rlist = []*VimNode{nil, nil}

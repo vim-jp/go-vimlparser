@@ -452,24 +452,13 @@ function s:GoCompiler.compile_let(node)
     elseif left =~ '^\v(self\.(find_command_cache|cache|buf|pos|context)|toplevel.body|lhs.list|(node\.(body|attr|else_|elseif|catch|finally|pattern|end(function|if|for|try))))$' && op == '='
       " skip initialization
       return
-    elseif left =~ '^\v(node\.(list|depth))$' && op == '='
-      if right == 'nil' || right == '[]interface{}{}'
-        return
-      endif
-      call self.out('%s %s %s', left, op, right)
+    elseif left =~ '^\v%(node\.%(r?list|default_args|body))$' && op == '='
+      call self.out('%s %s %s', left, op, substitute(right, '[]interface{}', '[]*VimNode', 'g'))
       return
-    elseif left =~ 'node.rlist' && op == '='
-      if right == '[]interface{}{}'
-        return
-      endif
-      let m = matchstr(right, '\V[]interface{}{\zs\.\*\ze}\$')
-      if m != ''
-        call self.out('%s = []*VimNode{%s}', left, m)
-      else
-        call self.out('%s = %s', left, right)
-      endif
+    elseif left == 'node.depth' && op == '=' && right == 'nil'
+      call self.out('%s %s %s', left, op, '0')
       return
-    elseif left =~ '^\v(list|curly_parts)$' && op == '=' && right == '[]interface{}{}'
+    elseif left =~ '^\v(r?list|curly_parts)$' && op == '=' && right == '[]interface{}{}'
       call self.out('var %s []*VimNode', left)
       return
     elseif left == 'cmd' && op == '=' && (right == 'nil' || right =~ '^\Vmap[string]interface{}{')

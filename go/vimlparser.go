@@ -1235,7 +1235,8 @@ func (self *VimLParser) parse_cmd_function() {
 	node.pos = self.ea.cmdpos
 	node.ea = self.ea
 	node.left = left
-	node.default_args = []interface{}{}
+	node.rlist = []*VimNode{}
+	node.default_args = []*VimNode{}
 	self.reader.getn(1)
 	var tokenizer = NewExprTokenizer(self.reader)
 	if tokenizer.peek().type_ == TOKEN_PCLOSE {
@@ -1374,6 +1375,7 @@ func (self *VimLParser) parse_heredoc() *VimNode {
 	var node = Node(NODE_HEREDOC)
 	node.pos = self.ea.cmdpos
 	node.op = ""
+	node.rlist = []*VimNode{}
 	for true {
 		self.reader.skip_white()
 		var pos = self.reader.getpos()
@@ -1510,6 +1512,8 @@ func (self *VimLParser) parse_cmd_lockvar() {
 	var node = Node(NODE_LOCKVAR)
 	node.pos = self.ea.cmdpos
 	node.ea = self.ea
+	node.depth = 0
+	node.list = []*VimNode{}
 	self.reader.skip_white()
 	if isdigit(self.reader.peekn(1)) {
 		node.depth = viml_str2nr(self.reader.read_digit(), 10)
@@ -1522,6 +1526,8 @@ func (self *VimLParser) parse_cmd_unlockvar() {
 	var node = Node(NODE_UNLOCKVAR)
 	node.pos = self.ea.cmdpos
 	node.ea = self.ea
+	node.depth = 0
+	node.list = []*VimNode{}
 	self.reader.skip_white()
 	if isdigit(self.reader.peekn(1)) {
 		node.depth = viml_str2nr(self.reader.read_digit(), 10)
@@ -2830,7 +2836,7 @@ func (self *ExprParser) parse_expr8() *VimNode {
 }
 
 func (self *ExprParser) parse_rlist() []*VimNode {
-	var rlist = []interface{}{}
+	var rlist []*VimNode
 	var token = self.tokenizer.peek()
 	if self.tokenizer.peek().type_ == TOKEN_PCLOSE {
 		self.tokenizer.get()
@@ -2938,6 +2944,7 @@ func (self *ExprParser) parse_expr9() *VimNode {
 			// lambda {token,...} {->...} {token->...}
 			node = Node(NODE_LAMBDA)
 			node.pos = nodepos
+			node.rlist = []*VimNode{}
 			var named = map[string]interface{}{}
 			for true {
 				if token.type_ == TOKEN_ARROW {
