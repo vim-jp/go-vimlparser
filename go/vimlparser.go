@@ -3015,7 +3015,13 @@ func (self *ExprParser) parse_expr9() *VimNode {
 			return node
 		}
 		for {
-			var key = viml_ternary(is_litdict, self.tokenizer.parse_dict_literal_key(), self.parse_expr1())
+			var key = func() *VimNode {
+				if is_litdict {
+					return self.tokenizer.parse_dict_literal_key()
+				} else {
+					return self.parse_expr1()
+				}
+			}()
 			token = self.tokenizer.get()
 			if token.type_ == TOKEN_CCLOSE {
 				if !viml_empty(node.value) {

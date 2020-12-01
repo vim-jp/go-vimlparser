@@ -642,6 +642,8 @@ function s:GoCompiler.compile_ternary(node)
   let right = self.compile(a:node.right)
   if cond =~ '^node\.rlist\[\d\]' && left == '"nil"'
     return printf('func() string { if %s {return %s} else {return %s.(string)} }()', cond, left, right)
+  elseif cond == 'is_litdict'
+    return printf('func() *VimNode { if %s {return %s} else {return %s} }()', cond, left, right)
   else
     return printf('viml_ternary(%s, %s, %s)', cond, left, right)
   endif
