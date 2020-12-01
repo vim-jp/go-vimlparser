@@ -526,7 +526,7 @@ function s:GoCompiler.compile_let(node)
 endfunction
 
 function s:GoCompiler.compile_unlet(node)
-  echom 'NotImplemented: unlet'
+  " echom 'NotImplemented: unlet'
 endfunction
 
 function s:GoCompiler.compile_lockvar(node)
