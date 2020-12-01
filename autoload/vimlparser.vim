@@ -5601,16 +5601,10 @@ function! s:Compiler.compile_lambda(node) abort
 endfunction
 
 function! s:Compiler.compile_heredoc(node) abort
-  if empty(a:node.rlist)
-    let rlist = '(list)'
-  else
-    let rlist = '(list ' . join(map(a:node.rlist, 'self.escape_string(v:val.value)'), ' ') . ')'
-  endif
-  if empty(a:node.body)
-    let body = '(list)'
-  else
-    let body = '(list ' . join(map(a:node.body, 'self.escape_string(v:val.value)'), ' ') . ')'
-  endif
+  let rlist = empty(a:node.rlist) ? '(list)'
+        \ : '(list ' . join(map(a:node.rlist, 'self.escape_string(v:val.value)'), ' ') . ')'
+  let body = empty(a:node.body) ? '(list)'
+        \ : '(list ' . join(map(a:node.body, 'self.escape_string(v:val.value)'), ' ') . ')'
   let op = self.escape_string(a:node.op)
   return printf('(heredoc %s %s %s)', rlist, op, body)
 endfunction

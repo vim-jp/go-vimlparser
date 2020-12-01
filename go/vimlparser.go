@@ -4325,16 +4325,32 @@ func (self *Compiler) compile_lambda(node *VimNode) string {
 }
 
 func (self *Compiler) compile_heredoc(node *VimNode) string {
-	if viml_empty(node.rlist) {
-		var rlist = "(list)"
-	} else {
-		var rlist = "(list " + viml_join(viml_map(node.rlist, "self.escape_string(v:val.value)"), " ") + ")"
-	}
-	if viml_empty(node.body) {
-		var body = "(list)"
-	} else {
-		var body = "(list " + viml_join(viml_map(node.body, "self.escape_string(v:val.value)"), " ") + ")"
-	}
+	var rlist = func() string {
+		if viml_empty(node.rlist) {
+			return "(list)"
+		} else {
+			return "(list " + viml_join(func() []string {
+				var ss []string
+				for _, vval := range node.rlist {
+					ss = append(ss, self.escape_string(vval.value.(string)))
+				}
+				return ss
+			}(), " ") + ")"
+		}
+	}()
+	var body = func() string {
+		if viml_empty(node.body) {
+			return "(list)"
+		} else {
+			return "(list " + viml_join(func() []string {
+				var ss []string
+				for _, vval := range node.body {
+					ss = append(ss, self.escape_string(vval.value.(string)))
+				}
+				return ss
+			}(), " ") + ")"
+		}
+	}()
 	var op = self.escape_string(node.op)
 	return viml_printf("(heredoc %s %s %s)", rlist, op, body)
 }

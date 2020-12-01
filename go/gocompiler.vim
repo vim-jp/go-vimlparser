@@ -642,6 +642,8 @@ function s:GoCompiler.compile_ternary(node)
   let right = self.compile(a:node.right)
   if cond =~ '^node\.rlist\[\d\]' && left == '"nil"'
     return printf('func() string { if %s {return %s} else {return %s.(string)} }()', cond, left, right)
+  elseif cond =~ '^viml_empty' && left == '"(list)"'
+    return printf('func() string { if %s {return %s} else {return %s} }()', cond, left, right)
   elseif cond == 'is_litdict'
     return printf('func() *VimNode { if %s {return %s} else {return %s} }()', cond, left, right)
   else
@@ -841,7 +843,6 @@ function s:GoCompiler.compile_call(node)
   let rlist = map(a:node.rlist, 'self.compile(v:val)')
   let left = self.compile(a:node.left)
   if left == 'map' && len(rlist) == 2 && rlist[1] == '"self.compile(v:val)"'
-    " throw 'NotImplemented: map()'
     return printf(join([
     \   'func() []string {',
     \   'var ss []string',
@@ -851,6 +852,16 @@ function s:GoCompiler.compile_call(node)
     \   'return ss',
     \   '}()',
     \ ], ";"), rlist[0], substitute(rlist[1][1:-2], 'v:val', 'vval', 'g'))
+  elseif left == 'map' && len(rlist) == 2 && rlist[1] == '"self.escape_string(v:val.value)"'
+    return printf(join([
+    \   'func() []string {',
+    \   'var ss []string',
+    \   'for _, vval := range %s {',
+    \   'ss = append(ss, %s)',
+    \   '}',
+    \   'return ss',
+    \   '}()',
+    \ ], ";"), rlist[0], substitute(rlist[1][1:-2], 'v:val\.value', 'vval.value.(string)', 'g'))
   elseif left == 'call' && rlist[0][0] =~ '[''"]'
     return printf('viml_%s(*%s)', rlist[0][1:-2], rlist[1])
   elseif left =~ 'ExArg'
