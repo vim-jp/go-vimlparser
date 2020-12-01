@@ -1383,7 +1383,7 @@ func (self *VimLParser) parse_heredoc() *VimNode {
 		if key == "" {
 			break
 		}
-		if !islower(key[0]) {
+		if !islower(key[:1]) {
 			node.op = key
 			break
 		} else {

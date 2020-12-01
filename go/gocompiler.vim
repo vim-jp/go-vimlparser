@@ -855,6 +855,8 @@ function s:GoCompiler.compile_call(node)
     return printf('&%s{}', left)
   elseif left == 'isvarname' && len(rlist) == 1 && rlist[0] == 'node.value'
     return printf('%s(%s.(string))', left, rlist[0])
+  elseif left == 'islower' && len(rlist) == 1 && rlist[0] == 'key[0]'
+    return printf('%s(key[:1])', left)
   elseif left == 'self.reader.seek_set' && len(rlist) == 1 && rlist[0] == 'x[0]'
     return printf('%s(%s.(int))', left, rlist[0])
   elseif left == 'self.compile' && len(rlist) == 1 && rlist[0] =~ '\v^node\.(left|rest)$'
