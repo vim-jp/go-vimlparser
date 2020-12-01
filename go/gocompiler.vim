@@ -855,6 +855,8 @@ function s:GoCompiler.compile_call(node)
     return printf('viml_%s(*%s)', rlist[0][1:-2], rlist[1])
   elseif left =~ 'ExArg'
     return printf('&%s{}', left)
+  elseif left == 'remove' && len(rlist) == 2 && rlist[1] == '-1'
+    return printf('%s = %s[:len(%s)-1]', rlist[0], rlist[0], rlist[0])
   elseif left == 'isvarname' && len(rlist) == 1 && rlist[0] == 'node.value'
     return printf('%s(%s.(string))', left, rlist[0])
   elseif left == 'islower' && len(rlist) == 1 && rlist[0] == 'key[0]'

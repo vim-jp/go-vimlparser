@@ -3775,7 +3775,7 @@ func (self *Compiler) compile_function(node *VimNode) {
 	if !viml_empty(rlist) {
 		var remaining = false
 		if rlist[len(rlist)-1] == "..." {
-			viml_remove(rlist, -1)
+			rlist = rlist[:len(rlist)-1]
 			remaining = true
 		}
 		for _, i := range viml_range(0, len(rlist)-1) {
