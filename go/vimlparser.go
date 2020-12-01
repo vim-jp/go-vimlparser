@@ -3765,7 +3765,7 @@ func (self *Compiler) compile_function(node *VimNode) {
 			viml_remove(rlist, -1)
 			remaining = true
 		}
-		for _, i := range viml_range(len(rlist)) {
+		for _, i := range viml_range(0, len(rlist)-1) {
 			if i < len(rlist)-len(default_args) {
 				left += viml_printf(" %s", rlist[i])
 			} else {
@@ -4288,7 +4288,7 @@ func (self *Compiler) compile_curlynamepart(node *VimNode) string {
 func (self *Compiler) escape_string(str string) string {
 	var m = map[string]interface{}{"\n": "\\n", "\t": "\\t", "\r": "\\r"}
 	var out = "\""
-	for _, i := range viml_range(len(str)) {
+	for _, i := range viml_range(0, len(str)) {
 		var c = str[i]
 		if viml_has_key(m, c) {
 			out += m[c]

@@ -78,6 +78,7 @@ let self.ea.range = 1
 let xxx.x = 1
 let z = self.ea.range
 let xs = range(10)
+let xs = range(0, 10)
 
 function! s:Node()
   " skip Node definition

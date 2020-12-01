@@ -882,6 +882,9 @@ function s:GoCompiler.compile_call(node)
     endif
   endif
   if left == 'range_'
+    if len(rlist) == 1
+      let rlist = ['0', rlist[0] . ' - 1']
+    endif
     let left = 'viml_range'
   endif
   return printf('%s(%s)', left, join(rlist, ', '))
