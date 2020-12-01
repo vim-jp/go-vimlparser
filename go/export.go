@@ -446,6 +446,13 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			Expr:        newExprNode(n.left, filename),
 		}
 
+	case NODE_BLOB:
+		return &ast.BasicLit{
+			ValuePos: pos,
+			Kind:     token.BLOB,
+			Value:    n.value.(string),
+		}
+
 	case NODE_PARENEXPR:
 		n := n.value.(*VimNode)
 		return &ast.ParenExpr{
