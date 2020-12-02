@@ -343,6 +343,14 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			High:   newExprNode(n.rlist[1], filename),
 		}
 
+	case NODE_METHOD:
+		return &ast.MethodExpr{
+			Lparen: pos,
+			Left:   newExprNode(n.left, filename),
+			Method: newExprNode(n.right.left, filename),
+			Args:   newRlist(*n.right, filename),
+		}
+
 	case NODE_CALL:
 		return &ast.CallExpr{
 			Lparen: pos,

@@ -387,6 +387,14 @@ func (c *Compiler) compileExpr(node ast.Expr) string {
 			h = c.compileExpr(n.High)
 		}
 		return fmt.Sprintf("(slice %s %s %s)", x, l, h)
+	case *ast.MethodExpr:
+		name := c.compileExpr(n.Left)
+		args := make([]string, 0, len(n.Args)+1)
+		args = append(args, c.compileExpr(n.Method))
+		for _, a := range n.Args {
+			args = append(args, c.compileExpr(a))
+		}
+		return fmt.Sprintf("(method %s (%s))", name, strings.Join(args, " "))
 	case *ast.CallExpr:
 		name := c.compileExpr(n.Fun)
 		if len(n.Args) > 0 {

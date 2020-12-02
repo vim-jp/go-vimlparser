@@ -427,6 +427,16 @@ type SliceExpr struct {
 
 func (f *SliceExpr) Pos() Pos { return f.Lbrack }
 
+// vimlparser: METHOD .left .right
+type MethodExpr struct {
+	Left   Expr   // this object
+	Method Expr   // method
+	Lparen Pos    // position of "("
+	Args   []Expr // function arguments; or nil
+}
+
+func (c *MethodExpr) Pos() Pos { return c.Lparen }
+
 // vimlparser: CALL .left .rlist
 type CallExpr struct {
 	Fun    Expr   // function expression
@@ -588,6 +598,7 @@ func (*BinaryExpr) exprNode()    {}
 func (*UnaryExpr) exprNode()     {}
 func (*SubscriptExpr) exprNode() {}
 func (*SliceExpr) exprNode()     {}
+func (*MethodExpr) exprNode()    {}
 func (*CallExpr) exprNode()      {}
 func (*DotExpr) exprNode()       {}
 func (*BasicLit) exprNode()      {}

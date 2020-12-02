@@ -164,6 +164,11 @@ func Walk(v Visitor, node Node) {
 		Walk(v, n.Low)
 		Walk(v, n.High)
 
+	case *MethodExpr:
+		Walk(v, n.Left)
+		Walk(v, n.Method)
+		walkExprList(v, n.Args)
+
 	case *CallExpr:
 		Walk(v, n.Fun)
 		walkExprList(v, n.Args)
