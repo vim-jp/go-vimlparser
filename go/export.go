@@ -453,6 +453,14 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			Value:    n.value.(string),
 		}
 
+	case NODE_HEREDOC:
+		return &ast.HeredocExpr{
+			OpPos:     pos,
+			Flags:     newRlist(*n, filename),
+			EndMarker: n.op,
+			Body:      newBodyExprs(*n, filename),
+		}
+
 	case NODE_PARENEXPR:
 		n := n.value.(*VimNode)
 		return &ast.ParenExpr{
@@ -531,6 +539,14 @@ func newBody(n VimNode, filename string) []ast.Statement {
 		if node != nil { // conservative
 			body = append(body, newAstNode(node, filename).(ast.Statement))
 		}
+	}
+	return body
+}
+
+func newBodyExprs(n VimNode, filename string) []ast.Expr {
+	body := make([]ast.Expr, len(n.body))
+	for i, node := range n.body {
+		body[i] = newExprNode(node, filename)
 	}
 	return body
 }

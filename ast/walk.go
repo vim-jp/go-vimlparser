@@ -201,6 +201,10 @@ func Walk(v Visitor, node Node) {
 	case *ParenExpr:
 		Walk(v, n.X)
 
+	case *HeredocExpr:
+		walkExprList(v, n.Flags)
+		walkExprList(v, n.Body)
+
 	default:
 		panic(fmt.Sprintf("ast.Walk: unexpected node type %T", n))
 	}

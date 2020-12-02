@@ -440,6 +440,28 @@ func (c *Compiler) compileExpr(node ast.Expr) string {
 			params = append(params, p.Name)
 		}
 		return fmt.Sprintf("(lambda (%s) %s)", strings.Join(params, " "), c.compileExpr(n.Expr))
+	case *ast.HeredocExpr:
+		var flags string
+		if len(n.Flags) == 0 {
+			flags = "(list)"
+		} else {
+			xs := make([]string, len(n.Flags))
+			for i, f := range n.Flags {
+				xs[i] = `"` + c.compileExpr(f) + `"`
+			}
+			flags = fmt.Sprintf("(list %s)", strings.Join(xs, " "))
+		}
+		var body string
+		if len(n.Body) == 0 {
+			body = "(list)"
+		} else {
+			xs := make([]string, len(n.Body))
+			for i, p := range n.Body {
+				xs[i] = `"` + escape(c.compileExpr(p), "\n\t\r") + `"`
+			}
+			body = fmt.Sprintf("(list %s)", strings.Join(xs, " "))
+		}
+		return fmt.Sprintf(`(heredoc %s "%s" %s)`, flags, n.EndMarker, body)
 	case *ast.ParenExpr:
 		return c.compileExpr(n.X)
 	}
@@ -450,7 +472,16 @@ func escape(s string, chars string) string {
 	r := ""
 	for _, c := range s {
 		if strings.IndexRune(chars, c) != -1 {
-			r += `\` + string(c)
+			switch c {
+			case '\n':
+				r += `\n`
+			case '\t':
+				r += `\t`
+			case '\r':
+				r += `\r`
+			default:
+				r += `\` + string(c)
+			}
 		} else {
 			r += string(c)
 		}

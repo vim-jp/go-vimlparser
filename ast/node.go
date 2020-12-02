@@ -517,7 +517,7 @@ type Ident struct {
 func (i *Ident) Pos() Pos { return i.NamePos }
 
 // LambdaExpr node represents lambda.
-// vimlparsr: LAMBDA .rlist .left
+// vimlparser: LAMBDA .rlist .left
 // { Params -> Expr }
 type LambdaExpr struct {
 	Lcurlybrace Pos      // position of "{"
@@ -528,13 +528,24 @@ type LambdaExpr struct {
 func (i *LambdaExpr) Pos() Pos { return i.Lcurlybrace }
 
 // ParenExpr node represents a parenthesized expression.
-// vimlparsr: PARENEXPR .value
+// vimlparser: PARENEXPR .value
 type ParenExpr struct {
 	Lparen Pos  // position of "("
 	X      Expr // parenthesized expression
 }
 
 func (i *ParenExpr) Pos() Pos { return i.Lparen }
+
+// HeredocExpr node represents a heredoc expression.
+// vimlparser: HEREDOC .rlist .op .body
+type HeredocExpr struct {
+	OpPos     Pos    // position of "=<<"
+	Flags     []Expr // modifiers [trim]; or nil
+	EndMarker string // {endmarker}
+	Body      []Expr // body
+}
+
+func (i *HeredocExpr) Pos() Pos { return i.OpPos }
 
 // stmtNode() ensures that only ExComamnd and Comment nodes can be assigned to
 // an Statement.
@@ -588,3 +599,4 @@ func (*CurlyNameExpr) exprNode() {}
 func (*Ident) exprNode()         {}
 func (*LambdaExpr) exprNode()    {}
 func (*ParenExpr) exprNode()     {}
+func (*HeredocExpr) exprNode()   {}
