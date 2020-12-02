@@ -135,6 +135,9 @@ func Walk(v Visitor, node Node) {
 	case *Throw:
 		Walk(v, n.Expr)
 
+	case *Eval:
+		Walk(v, n.Expr)
+
 	case *EchoCmd:
 		walkExprList(v, n.Exprs)
 

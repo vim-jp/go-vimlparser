@@ -129,6 +129,8 @@ func (c *Compiler) compileExcommand(node ast.ExCommand) error {
 		c.compileTry(n)
 	case *ast.Throw:
 		c.compileThrow(n)
+	case *ast.Eval:
+		c.compileEval(n)
 	case *ast.EchoCmd:
 		c.compileEchocmd(n)
 	case *ast.Echohl:
@@ -328,6 +330,11 @@ func (c *Compiler) compileTry(node *ast.Try) {
 }
 
 func (c *Compiler) compileThrow(node *ast.Throw) {
+	cmd := node.Cmd().Name
+	c.fprintln("(%s %s)", cmd, c.compileExpr(node.Expr))
+}
+
+func (c *Compiler) compileEval(node *ast.Eval) {
 	cmd := node.Cmd().Name
 	c.fprintln("(%s %s)", cmd, c.compileExpr(node.Expr))
 }

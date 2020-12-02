@@ -342,6 +342,17 @@ type Throw struct {
 func (f *Throw) Pos() Pos { return f.Throw }
 func (f *Throw) Cmd() Cmd { return *f.ExArg.Cmd }
 
+// vimlparser: EVAL .ea .left
+// :eval {Expr}
+type Eval struct {
+	Eval  Pos   // position of starting the :eval
+	ExArg ExArg // Ex command arg
+	Expr  Expr
+}
+
+func (f *Eval) Pos() Pos { return f.Eval }
+func (f *Eval) Cmd() Cmd { return *f.ExArg.Cmd }
+
 // vimlparser: ECHO .ea .list
 // vimlparser: ECHON .ea .list
 // vimlparser: ECHOMSG .ea .list
@@ -584,6 +595,7 @@ func (*Let) stmtNode()        {}
 func (*LockVar) stmtNode()    {}
 func (*Return) stmtNode()     {}
 func (*Throw) stmtNode()      {}
+func (*Eval) stmtNode()       {}
 func (*Try) stmtNode()        {}
 func (*UnLet) stmtNode()      {}
 func (*UnLockVar) stmtNode()  {}

@@ -275,6 +275,13 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			Expr:  newExprNode(n.left, filename),
 		}
 
+	case NODE_EVAL:
+		return &ast.Eval{
+			Eval:  pos,
+			ExArg: newExArg(*n.ea, filename),
+			Expr:  newExprNode(n.left, filename),
+		}
+
 	case NODE_ECHO, NODE_ECHON, NODE_ECHOMSG, NODE_ECHOERR:
 		return &ast.EchoCmd{
 			Start:   pos,
