@@ -107,7 +107,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			ExArg: newExArg(*n.ea, filename),
 			Op:    n.op,
 			Left:  newExprNode(n.left, filename),
-			List:  newList(*n, filename),
+			List:  newExprs(n.list, filename),
 			Rest:  newExprNode(n.rest, filename),
 			Right: newExprNode(n.right, filename),
 		}
@@ -116,7 +116,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 		return &ast.UnLet{
 			UnLet: pos,
 			ExArg: newExArg(*n.ea, filename),
-			List:  newList(*n, filename),
+			List:  newExprs(n.list, filename),
 		}
 
 	case NODE_LOCKVAR:
@@ -124,7 +124,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			LockVar: pos,
 			ExArg:   newExArg(*n.ea, filename),
 			Depth:   n.depth,
-			List:    newList(*n, filename),
+			List:    newExprs(n.list, filename),
 		}
 
 	case NODE_UNLOCKVAR:
@@ -132,7 +132,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			UnLockVar: pos,
 			ExArg:     newExArg(*n.ea, filename),
 			Depth:     n.depth,
-			List:      newList(*n, filename),
+			List:      newExprs(n.list, filename),
 		}
 
 	case NODE_IF:
@@ -201,7 +201,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			ExArg:  newExArg(*n.ea, filename),
 			Body:   newBody(*n, filename),
 			Left:   newExprNode(n.left, filename),
-			List:   newList(*n, filename),
+			List:   newExprs(n.list, filename),
 			Rest:   newExprNode(n.rest, filename),
 			Right:  newExprNode(n.right, filename),
 			EndFor: newAstNode(n.endfor, filename).(*ast.EndFor),
@@ -288,7 +288,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			Start:   pos,
 			CmdName: n.ea.cmd.name,
 			ExArg:   newExArg(*n.ea, filename),
-			Exprs:   newList(*n, filename),
+			Exprs:   newExprs(n.list, filename),
 		}
 
 	case NODE_ECHOHL:
@@ -302,7 +302,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 		return &ast.Execute{
 			Execute: pos,
 			ExArg:   newExArg(*n.ea, filename),
-			Exprs:   newList(*n, filename),
+			Exprs:   newExprs(n.list, filename),
 		}
 
 	case NODE_TERNARY:
@@ -356,14 +356,14 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			Lparen: pos,
 			Left:   newExprNode(n.left, filename),
 			Method: newExprNode(n.right.left, filename),
-			Args:   newRlist(*n.right, filename),
+			Args:   newExprs(n.right.rlist, filename),
 		}
 
 	case NODE_CALL:
 		return &ast.CallExpr{
 			Lparen: pos,
 			Fun:    newExprNode(n.left, filename),
-			Args:   newRlist(*n, filename),
+			Args:   newExprs(n.rlist, filename),
 		}
 
 	case NODE_DOT:
@@ -472,9 +472,9 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 	case NODE_HEREDOC:
 		return &ast.HeredocExpr{
 			OpPos:     pos,
-			Flags:     newRlist(*n, filename),
+			Flags:     newExprs(n.rlist, filename),
 			EndMarker: n.op,
-			Body:      newBodyExprs(*n, filename),
+			Body:      newExprs(n.body, filename),
 		}
 
 	case NODE_PARENEXPR:
@@ -559,14 +559,6 @@ func newBody(n VimNode, filename string) []ast.Statement {
 	return body
 }
 
-func newBodyExprs(n VimNode, filename string) []ast.Expr {
-	body := make([]ast.Expr, len(n.body))
-	for i, node := range n.body {
-		body[i] = newExprNode(node, filename)
-	}
-	return body
-}
-
 func newIdents(n VimNode, filename string) []*ast.Ident {
 	var idents []*ast.Ident
 	if n.rlist != nil {
@@ -578,32 +570,6 @@ func newIdents(n VimNode, filename string) []*ast.Ident {
 		}
 	}
 	return idents
-}
-
-func newRlist(n VimNode, filename string) []ast.Expr {
-	var exprs []ast.Expr
-	if n.rlist != nil {
-		exprs = make([]ast.Expr, 0, len(n.rlist))
-	}
-	for _, node := range n.rlist {
-		if node != nil { // conservative
-			exprs = append(exprs, newExprNode(node, filename))
-		}
-	}
-	return exprs
-}
-
-func newList(n VimNode, filename string) []ast.Expr {
-	var list []ast.Expr
-	if n.list != nil {
-		list = make([]ast.Expr, 0, len(n.list))
-	}
-	for _, node := range n.list {
-		if node != nil { // conservative
-			list = append(list, newExprNode(node, filename))
-		}
-	}
-	return list
 }
 
 func newExprs(xs []*VimNode, filename string) []ast.Expr {
