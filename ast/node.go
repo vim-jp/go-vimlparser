@@ -65,6 +65,7 @@ type Function struct {
 	Body        []Statement  // function body
 	Name        Expr         // function name
 	Params      []*Ident     // parameters
+	DefaultArgs []Expr       // default arguments
 	Attr        FuncAttr     // function attributes
 	EndFunction *EndFunction // :endfunction
 }

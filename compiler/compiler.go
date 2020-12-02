@@ -153,12 +153,21 @@ func (c *Compiler) compileFunction(node *ast.Function) {
 	if len(node.Params) > 0 {
 		c.fprint(" ")
 		ps := make([]string, 0, len(node.Params))
-		for _, p := range node.Params {
-			if p.Name == token.DOTDOTDOT.String() {
-				ps = append(ps, ". ...")
-			} else {
+		var remaining bool
+		if node.Params[len(node.Params)-1].Name == token.DOTDOTDOT.String() {
+			node.Params = node.Params[:len(node.Params)-1]
+			remaining = true
+		}
+		for i, p := range node.Params {
+			if i < len(node.Params)-len(node.DefaultArgs) {
 				ps = append(ps, p.Name)
+			} else {
+				ps = append(ps, fmt.Sprintf("(%s %s)", p.Name,
+					c.compileExpr(node.DefaultArgs[i+len(node.DefaultArgs)-len(node.Params)])))
 			}
+		}
+		if remaining {
+			ps = append(ps, ". ...")
 		}
 		c.fprint("%s", strings.Join(ps, " "))
 	}

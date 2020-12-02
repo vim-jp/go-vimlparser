@@ -69,6 +69,7 @@ func newAstNode(n *VimNode, filename string) ast.Node {
 			Body:        newBody(*n, filename),
 			Name:        newExprNode(n.left, filename),
 			Params:      newIdents(*n, filename),
+			DefaultArgs: newExprs(n.default_args, filename),
 			Attr:        attr,
 			EndFunction: newAstNode(n.endfunction, filename).(*ast.EndFunction),
 		}
@@ -598,6 +599,19 @@ func newList(n VimNode, filename string) []ast.Expr {
 		list = make([]ast.Expr, 0, len(n.list))
 	}
 	for _, node := range n.list {
+		if node != nil { // conservative
+			list = append(list, newExprNode(node, filename))
+		}
+	}
+	return list
+}
+
+func newExprs(xs []*VimNode, filename string) []ast.Expr {
+	var list []ast.Expr
+	if xs != nil {
+		list = make([]ast.Expr, 0, len(xs))
+	}
+	for _, node := range xs {
 		if node != nil { // conservative
 			list = append(list, newExprNode(node, filename))
 		}
