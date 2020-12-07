@@ -61,9 +61,9 @@ func opprec(op ast.Expr) int {
 		default:
 			panic(fmt.Errorf("unexpected token of UnaryExpr: %v", n.Op))
 		}
-	case *ast.SubscriptExpr, *ast.SliceExpr, *ast.CallExpr, *ast.DotExpr:
+	case *ast.SubscriptExpr, *ast.SliceExpr, *ast.CallExpr, *ast.DotExpr, *ast.MethodExpr:
 		return 8
-	case *ast.BasicLit, *ast.Ident, *ast.List, *ast.Dict, *ast.CurlyName:
+	case *ast.BasicLit, *ast.Ident, *ast.List, *ast.Dict, *ast.CurlyName, *ast.HeredocExpr:
 		return 9
 	case *ast.CurlyNameExpr, *ast.CurlyNameLit, *ast.LambdaExpr:
 		panic(fmt.Errorf("precedence is undefined for expr: %T", n))
