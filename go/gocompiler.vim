@@ -452,24 +452,13 @@ function s:GoCompiler.compile_let(node)
     elseif left =~ '^\v(self\.(find_command_cache|cache|buf|pos|context)|toplevel.body|lhs.list|(node\.(body|attr|else_|elseif|catch|finally|pattern|end(function|if|for|try))))$' && op == '='
       " skip initialization
       return
-    elseif left =~ '^\v(node\.(list|depth))$' && op == '='
-      if right == 'nil' || right == '[]interface{}{}'
-        return
-      endif
-      call self.out('%s %s %s', left, op, right)
+    elseif left =~ '^\v%(node\.%(r?list|default_args|body))$' && op == '='
+      call self.out('%s %s %s', left, op, substitute(right, '[]interface{}', '[]*VimNode', 'g'))
       return
-    elseif left =~ 'node.rlist' && op == '='
-      if right == '[]interface{}{}'
-        return
-      endif
-      let m = matchstr(right, '\V[]interface{}{\zs\.\*\ze}\$')
-      if m != ''
-        call self.out('%s = []*VimNode{%s}', left, m)
-      else
-        call self.out('%s = %s', left, right)
-      endif
+    elseif left == 'node.depth' && op == '=' && right == 'nil'
+      call self.out('%s %s %s', left, op, '0')
       return
-    elseif left =~ '^\v(list|curly_parts)$' && op == '=' && right == '[]interface{}{}'
+    elseif left =~ '^\v(r?list|curly_parts)$' && op == '=' && right == '[]interface{}{}'
       call self.out('var %s []*VimNode', left)
       return
     elseif left == 'cmd' && op == '=' && (right == 'nil' || right =~ '^\Vmap[string]interface{}{')
@@ -526,7 +515,7 @@ function s:GoCompiler.compile_let(node)
 endfunction
 
 function s:GoCompiler.compile_unlet(node)
-  echom 'NotImplemented: unlet'
+  " echom 'NotImplemented: unlet'
 endfunction
 
 function s:GoCompiler.compile_lockvar(node)
@@ -572,7 +561,9 @@ function s:GoCompiler.compile_while(node)
   endif
   call self.out('for %s{', cond)
   call self.incindent("\t")
+  call self.inscope()
   call self.compile_body(a:node.body)
+  call self.descope()
   call self.decindent()
   call self.out('}')
 endfunction
@@ -651,6 +642,10 @@ function s:GoCompiler.compile_ternary(node)
   let right = self.compile(a:node.right)
   if cond =~ '^node\.rlist\[\d\]' && left == '"nil"'
     return printf('func() string { if %s {return %s} else {return %s.(string)} }()', cond, left, right)
+  elseif cond =~ '^viml_empty' && left == '"(list)"'
+    return printf('func() string { if %s {return %s} else {return %s} }()', cond, left, right)
+  elseif cond == 'is_litdict'
+    return printf('func() *VimNode { if %s {return %s} else {return %s} }()', cond, left, right)
   else
     return printf('viml_ternary(%s, %s, %s)', cond, left, right)
   endif
@@ -769,7 +764,7 @@ function s:GoCompiler.compile_isci(node)
 endfunction
 
 function s:GoCompiler.compile_iscs(node)
-  throw 'NotImplemented: is#'
+  return self.compile_op2(a:node, '==')
 endfunction
 
 function s:GoCompiler.compile_isnot(node)
@@ -781,7 +776,7 @@ function s:GoCompiler.compile_isnotci(node)
 endfunction
 
 function s:GoCompiler.compile_isnotcs(node)
-  throw 'NotImplemented: isnot#'
+  return self.compile_op2(a:node, '!=')
 endfunction
 
 function s:GoCompiler.compile_add(node)
@@ -848,7 +843,6 @@ function s:GoCompiler.compile_call(node)
   let rlist = map(a:node.rlist, 'self.compile(v:val)')
   let left = self.compile(a:node.left)
   if left == 'map' && len(rlist) == 2 && rlist[1] == '"self.compile(v:val)"'
-    " throw 'NotImplemented: map()'
     return printf(join([
     \   'func() []string {',
     \   'var ss []string',
@@ -858,12 +852,26 @@ function s:GoCompiler.compile_call(node)
     \   'return ss',
     \   '}()',
     \ ], ";"), rlist[0], substitute(rlist[1][1:-2], 'v:val', 'vval', 'g'))
+  elseif left == 'map' && len(rlist) == 2 && rlist[1] == '"self.escape_string(v:val.value)"'
+    return printf(join([
+    \   'func() []string {',
+    \   'var ss []string',
+    \   'for _, vval := range %s {',
+    \   'ss = append(ss, %s)',
+    \   '}',
+    \   'return ss',
+    \   '}()',
+    \ ], ";"), rlist[0], substitute(rlist[1][1:-2], 'v:val\.value', 'vval.value.(string)', 'g'))
   elseif left == 'call' && rlist[0][0] =~ '[''"]'
     return printf('viml_%s(*%s)', rlist[0][1:-2], rlist[1])
   elseif left =~ 'ExArg'
     return printf('&%s{}', left)
+  elseif left == 'remove' && len(rlist) == 2 && rlist[1] == '-1'
+    return printf('%s = %s[:len(%s)-1]', rlist[0], rlist[0], rlist[0])
   elseif left == 'isvarname' && len(rlist) == 1 && rlist[0] == 'node.value'
     return printf('%s(%s.(string))', left, rlist[0])
+  elseif left == 'islower' && len(rlist) == 1 && rlist[0] == 'key[0]'
+    return printf('%s(key[:1])', left)
   elseif left == 'self.reader.seek_set' && len(rlist) == 1 && rlist[0] == 'x[0]'
     return printf('%s(%s.(int))', left, rlist[0])
   elseif left == 'self.compile' && len(rlist) == 1 && rlist[0] =~ '\v^node\.(left|rest)$'
@@ -882,6 +890,9 @@ function s:GoCompiler.compile_call(node)
     endif
   endif
   if left == 'range_'
+    if len(rlist) == 1
+      let rlist = ['0', rlist[0] . ' - 1']
+    endif
     let left = 'viml_range'
   endif
   return printf('%s(%s)', left, join(rlist, ', '))
@@ -991,7 +1002,7 @@ function s:GoCompiler.compile_op2(node, op)
   return printf('%s %s %s', left, a:op, right)
 endfunction
 
-let s:viml_builtin_functions = ['abs', 'acos', 'add', 'and', 'append', 'append', 'argc', 'argidx', 'argv', 'argv', 'asin', 'atan', 'atan2', 'browse', 'browsedir', 'bufexists', 'buflisted', 'bufloaded', 'bufname', 'bufnr', 'bufwinnr', 'byte2line', 'byteidx', 'call', 'ceil', 'changenr', 'char2nr', 'cindent', 'clearmatches', 'col', 'complete', 'complete_add', 'complete_check', 'confirm', 'copy', 'cos', 'cosh', 'count', 'cscope_connection', 'cursor', 'cursor', 'deepcopy', 'delete', 'did_filetype', 'diff_filler', 'diff_hlID', 'empty', 'escape', 'eval', 'eventhandler', 'executable', 'exists', 'extend', 'exp', 'expand', 'feedkeys', 'filereadable', 'filewritable', 'filter', 'finddir', 'findfile', 'float2nr', 'floor', 'fmod', 'fnameescape', 'fnamemodify', 'foldclosed', 'foldclosedend', 'foldlevel', 'foldtext', 'foldtextresult', 'foreground', 'function', 'garbagecollect', 'get', 'get', 'getbufline', 'getbufvar', 'getchar', 'getcharmod', 'getcmdline', 'getcmdpos', 'getcmdtype', 'getcwd', 'getfperm', 'getfsize', 'getfontname', 'getftime', 'getftype', 'getline', 'getline', 'getloclist', 'getmatches', 'getpid', 'getpos', 'getqflist', 'getreg', 'getregtype', 'gettabvar', 'gettabwinvar', 'getwinposx', 'getwinposy', 'getwinvar', 'glob', 'globpath', 'has', 'has_key', 'haslocaldir', 'hasmapto', 'histadd', 'histdel', 'histget', 'histnr', 'hlexists', 'hlID', 'hostname', 'iconv', 'indent', 'index', 'input', 'inputdialog', 'inputlist', 'inputrestore', 'inputsave', 'inputsecret', 'insert', 'invert', 'isdirectory', 'islocked', 'items', 'join', 'keys', 'len', 'libcall', 'libcallnr', 'line', 'line2byte', 'lispindent', 'localtime', 'log', 'log10', 'luaeval', 'map', 'maparg', 'mapcheck', 'match', 'matchadd', 'matcharg', 'matchdelete', 'matchend', 'matchlist', 'matchstr', 'max', 'min', 'mkdir', 'mode', 'mzeval', 'nextnonblank', 'nr2char', 'or', 'pathshorten', 'pow', 'prevnonblank', 'printf', 'pumvisible', 'pyeval', 'py3eval', 'range', 'readfile', 'reltime', 'reltimestr', 'remote_expr', 'remote_foreground', 'remote_peek', 'remote_read', 'remote_send', 'remove', 'remove', 'rename', 'repeat', 'resolve', 'reverse', 'round', 'screencol', 'screenrow', 'search', 'searchdecl', 'searchpair', 'searchpairpos', 'searchpos', 'server2client', 'serverlist', 'setbufvar', 'setcmdpos', 'setline', 'setloclist', 'setmatches', 'setpos', 'setqflist', 'setreg', 'settabvar', 'settabwinvar', 'setwinvar', 'sha256', 'shellescape', 'shiftwidth', 'simplify', 'sin', 'sinh', 'sort', 'soundfold', 'spellbadword', 'spellsuggest', 'split', 'sqrt', 'str2float', 'str2nr', 'strchars', 'strdisplaywidth', 'strftime', 'stridx', 'string', 'strlen', 'strpart', 'strridx', 'strtrans', 'strwidth', 'submatch', 'substitute', 'synID', 'synIDattr', 'synIDtrans', 'synconcealed', 'synstack', 'system', 'tabpagebuflist', 'tabpagenr', 'tabpagewinnr', 'taglist', 'tagfiles', 'tempname', 'tan', 'tanh', 'tolower', 'toupper', 'tr', 'trunc', 'type', 'undofile', 'undotree', 'values', 'virtcol', 'visualmode', 'wildmenumode', 'winbufnr', 'wincol', 'winheight', 'winline', 'winnr', 'winrestcmd', 'winrestview', 'winsaveview', 'winwidth', 'writefile', 'xor']
+let s:viml_builtin_functions = map(copy(s:VimLParser.builtin_functions), 'v:val.name')
 
 function! s:test()
   let vimfile = 'autoload/vimlparser.vim'

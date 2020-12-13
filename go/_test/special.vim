@@ -78,6 +78,7 @@ let self.ea.range = 1
 let xxx.x = 1
 let z = self.ea.range
 let xs = range(10)
+let xs = range(0, 10)
 
 function! s:Node()
   " skip Node definition
@@ -122,7 +123,6 @@ let self.context = {}
 let toplevel.body = {}
 
 let node.body = []
-let node.rlist = []
 let node.attr = {'range': 0, 'abort': 0, 'dict': 0}
 let node.endfunction = s:NIL
 let node.endif = s:NIL
@@ -133,14 +133,15 @@ let node.elseif = s:NIL
 let node.catch = []
 let node.finally = []
 
-let node.list = []
-let node.depth = s:NIL
 let node.pattern = s:NIL
 
 let lhs.list = []
 " end skip
 
 " do not skip
+let node.rlist = []
+let node.list = []
+let node.depth = s:NIL
 let node.list = self.parse_lvaluelist()
 let node.depth = hoge
 let node.pattern = node

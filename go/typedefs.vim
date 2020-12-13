@@ -61,6 +61,10 @@ call extend(s:typedefs.func, {
 \     'in': [],
 \     'out': ['*pos'],
 \   },
+\   'VimLParser.parse_heredoc': {
+\     'in': [],
+\     'out': ['*VimNode'],
+\   },
 \   'VimLParser.parse_expr': {
 \     'in': [],
 \     'out': ['*VimNode'],
@@ -77,11 +81,19 @@ call extend(s:typedefs.func, {
 \     'in': [],
 \     'out': ['*VimNode'],
 \   },
+\   'VimLParser.parse_constlvalue': {
+\     'in': [],
+\     'out': ['*VimNode'],
+\   },
 \   'VimLParser.parse_lvaluelist': {
 \     'in': [],
 \     'out': ['[]*VimNode'],
 \   },
 \   'VimLParser.parse_letlhs': {
+\     'in': [],
+\     'out': ['*lhs'],
+\   },
+\   'VimLParser.parse_constlhs': {
 \     'in': [],
 \     'out': ['*lhs'],
 \   },
@@ -110,6 +122,7 @@ call extend(s:typedefs.func, {
 \   'ExprTokenizer.get2': { 'in': [], 'out': ['*ExprToken'] },
 \   'ExprTokenizer.get_sstring': { 'in': [], 'out': ['string'] },
 \   'ExprTokenizer.get_dstring': { 'in': [], 'out': ['string'] },
+\   'ExprTokenizer.parse_dict_literal_key': { 'in': [], 'out': ['*VimNode'] },
 \ })
 
 call extend(s:typedefs.func, {
@@ -127,7 +140,9 @@ call extend(s:typedefs.func, {
 \   'ExprParser.parse_expr7': { 'in': [], 'out': ['*VimNode'] },
 \   'ExprParser.parse_expr8': { 'in': [], 'out': ['*VimNode'] },
 \   'ExprParser.parse_expr9': { 'in': [], 'out': ['*VimNode'] },
+\   'ExprParser.parse_rlist': { 'in': [], 'out': ['[]*VimNode'] },
 \   'ExprParser.parse_dot': { 'in': ['*ExprToken', '*VimNode'], 'out': ['*VimNode'] },
+\   'ExprParser.parse_concat': { 'in': ['*ExprToken', '*VimNode'], 'out': ['*VimNode'] },
 \   'ExprParser.parse_identifier': { 'in': [], 'out': ['*VimNode'] },
 \   'ExprParser.parse_curly_parts': { 'in': [], 'out': ['[]*VimNode'] },
 \ })
@@ -207,7 +222,9 @@ call extend(s:typedefs.func, {
 \   'StringReader.read_alnum': { 'in': [], 'out': ['string'] },
 \   'StringReader.read_digit': { 'in': [], 'out': ['string'] },
 \   'StringReader.read_odigit': { 'in': [], 'out': ['string'] },
+\   'StringReader.read_blob': { 'in': [], 'out': ['string'] },
 \   'StringReader.read_xdigit': { 'in': [], 'out': ['string'] },
+\   'StringReader.read_bdigit': { 'in': [], 'out': ['string'] },
 \   'StringReader.read_integer': { 'in': [], 'out': ['string'] },
 \   'StringReader.read_word': { 'in': [], 'out': ['string'] },
 \   'StringReader.read_white': { 'in': [], 'out': ['string'] },
@@ -242,7 +259,9 @@ call extend(s:typedefs.func, {
 \   'Compiler.compile_delfunction': { 'in': ['*VimNode'], 'out': [] },
 \   'Compiler.compile_return': { 'in': ['*VimNode'], 'out': [] },
 \   'Compiler.compile_excall': { 'in': ['*VimNode'], 'out': [] },
+\   'Compiler.compile_eval': { 'in': ['*VimNode'], 'out': [] },
 \   'Compiler.compile_let': { 'in': ['*VimNode'], 'out': [] },
+\   'Compiler.compile_const': { 'in': ['*VimNode'], 'out': [] },
 \   'Compiler.compile_unlet': { 'in': ['*VimNode'], 'out': [] },
 \   'Compiler.compile_lockvar': { 'in': ['*VimNode'], 'out': [] },
 \   'Compiler.compile_unlockvar': { 'in': ['*VimNode'], 'out': [] },
@@ -305,8 +324,10 @@ call extend(s:typedefs.func, {
 \   'Compiler.compile_subscript': { 'in': ['*VimNode'], 'out': ['string'] },
 \   'Compiler.compile_slice': { 'in': ['*VimNode'], 'out': ['string'] },
 \   'Compiler.compile_dot': { 'in': ['*VimNode'], 'out': ['string'] },
+\   'Compiler.compile_method': { 'in': ['*VimNode'], 'out': ['string'] },
 \   'Compiler.compile_call': { 'in': ['*VimNode'], 'out': ['string'] },
 \   'Compiler.compile_number': { 'in': ['*VimNode'], 'out': ['string'] },
+\   'Compiler.compile_blob': { 'in': ['*VimNode'], 'out': ['string'] },
 \   'Compiler.compile_string': { 'in': ['*VimNode'], 'out': ['string'] },
 \   'Compiler.compile_list': { 'in': ['*VimNode'], 'out': ['string'] },
 \   'Compiler.compile_dict': { 'in': ['*VimNode'], 'out': ['string'] },
@@ -317,7 +338,9 @@ call extend(s:typedefs.func, {
 \   'Compiler.compile_reg': { 'in': ['*VimNode'], 'out': ['string'] },
 \   'Compiler.compile_curlynamepart': { 'in': ['*VimNode'], 'out': ['string'] },
 \   'Compiler.compile_curlynameexpr': { 'in': ['*VimNode'], 'out': ['string'] },
+\   'Compiler.escape_string': { 'in': ['string'], 'out': ['string'] },
 \   'Compiler.compile_lambda': { 'in': ['*VimNode'], 'out': ['string'] },
+\   'Compiler.compile_heredoc': { 'in': ['*VimNode'], 'out': ['string'] },
 \   'Compiler.compile_parenexpr': { 'in': ['*VimNode'], 'out': ['string'] },
 \ })
 

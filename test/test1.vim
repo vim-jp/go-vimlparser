@@ -2,6 +2,12 @@
 function s:foo(a, b, ...)
   return 0
 endfunction
+function s:bar(a = 1, b = 2, ...)
+  return 0
+endfunction
+function s:baz(a, b = 2, ...)
+  return 0
+endfunction
 if 1
   echo "if 1"
 elseif 2
@@ -18,6 +24,8 @@ for [a, b; c] in d
 endfor
 delfunction s:foo
 call s:foo(1, 2, 3)
+eval filter(odds, 'v:val % 2')
+eval 42
 let a = {"x": "y"}
 let [a, b; c] = [1, 2, 3]
 let [a, b; c] += [1, 2, 3]
@@ -51,3 +59,16 @@ echo {} {"x":"y"} {"x":"y","z":"w",}
 echo x[0] x[y]
 echo x[1:2] x[1:] x[:2] x[:]
 echo x.y x.y.z
+let a = 1
+let a += 2
+let a *= 3
+let a /= 4
+let a %= 5
+let a ..= 'foo'
+echo ('foo' .. 'bar')..'baz'
+echo 'foo' .. ('bar'..'baz')
+echo 'foo' .. 'bar' .. 'baz'
+let a = '🐥'
+const a = 1
+const [a, b] = [1, 2]
+const [a, b; c] = [1, 2, 3]

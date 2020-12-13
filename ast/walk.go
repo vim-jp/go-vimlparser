@@ -135,6 +135,9 @@ func Walk(v Visitor, node Node) {
 	case *Throw:
 		Walk(v, n.Expr)
 
+	case *Eval:
+		Walk(v, n.Expr)
+
 	case *EchoCmd:
 		walkExprList(v, n.Exprs)
 
@@ -163,6 +166,11 @@ func Walk(v Visitor, node Node) {
 		Walk(v, n.X)
 		Walk(v, n.Low)
 		Walk(v, n.High)
+
+	case *MethodExpr:
+		Walk(v, n.Left)
+		Walk(v, n.Method)
+		walkExprList(v, n.Args)
 
 	case *CallExpr:
 		Walk(v, n.Fun)
@@ -200,6 +208,10 @@ func Walk(v Visitor, node Node) {
 
 	case *ParenExpr:
 		Walk(v, n.X)
+
+	case *HeredocExpr:
+		walkExprList(v, n.Flags)
+		walkExprList(v, n.Body)
 
 	default:
 		panic(fmt.Sprintf("ast.Walk: unexpected node type %T", n))

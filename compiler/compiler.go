@@ -129,6 +129,8 @@ func (c *Compiler) compileExcommand(node ast.ExCommand) error {
 		c.compileTry(n)
 	case *ast.Throw:
 		c.compileThrow(n)
+	case *ast.Eval:
+		c.compileEval(n)
 	case *ast.EchoCmd:
 		c.compileEchocmd(n)
 	case *ast.Echohl:
@@ -151,12 +153,21 @@ func (c *Compiler) compileFunction(node *ast.Function) {
 	if len(node.Params) > 0 {
 		c.fprint(" ")
 		ps := make([]string, 0, len(node.Params))
-		for _, p := range node.Params {
-			if p.Name == token.DOTDOTDOT.String() {
-				ps = append(ps, ". ...")
-			} else {
+		var remaining bool
+		if node.Params[len(node.Params)-1].Name == token.DOTDOTDOT.String() {
+			node.Params = node.Params[:len(node.Params)-1]
+			remaining = true
+		}
+		for i, p := range node.Params {
+			if i < len(node.Params)-len(node.DefaultArgs) {
 				ps = append(ps, p.Name)
+			} else {
+				ps = append(ps, fmt.Sprintf("(%s %s)", p.Name,
+					c.compileExpr(node.DefaultArgs[i+len(node.DefaultArgs)-len(node.Params)])))
 			}
+		}
+		if remaining {
+			ps = append(ps, ". ...")
 		}
 		c.fprint("%s", strings.Join(ps, " "))
 	}
@@ -332,6 +343,11 @@ func (c *Compiler) compileThrow(node *ast.Throw) {
 	c.fprintln("(%s %s)", cmd, c.compileExpr(node.Expr))
 }
 
+func (c *Compiler) compileEval(node *ast.Eval) {
+	cmd := node.Cmd().Name
+	c.fprintln("(%s %s)", cmd, c.compileExpr(node.Expr))
+}
+
 func (c *Compiler) compileEchocmd(node *ast.EchoCmd) {
 	cmd := node.Cmd().Name
 	exprs := make([]string, 0, len(node.Exprs))
@@ -387,6 +403,14 @@ func (c *Compiler) compileExpr(node ast.Expr) string {
 			h = c.compileExpr(n.High)
 		}
 		return fmt.Sprintf("(slice %s %s %s)", x, l, h)
+	case *ast.MethodExpr:
+		name := c.compileExpr(n.Left)
+		args := make([]string, 0, len(n.Args)+1)
+		args = append(args, c.compileExpr(n.Method))
+		for _, a := range n.Args {
+			args = append(args, c.compileExpr(a))
+		}
+		return fmt.Sprintf("(method %s (%s))", name, strings.Join(args, " "))
 	case *ast.CallExpr:
 		name := c.compileExpr(n.Fun)
 		if len(n.Args) > 0 {
@@ -440,6 +464,28 @@ func (c *Compiler) compileExpr(node ast.Expr) string {
 			params = append(params, p.Name)
 		}
 		return fmt.Sprintf("(lambda (%s) %s)", strings.Join(params, " "), c.compileExpr(n.Expr))
+	case *ast.HeredocExpr:
+		var flags string
+		if len(n.Flags) == 0 {
+			flags = "(list)"
+		} else {
+			xs := make([]string, len(n.Flags))
+			for i, f := range n.Flags {
+				xs[i] = `"` + c.compileExpr(f) + `"`
+			}
+			flags = fmt.Sprintf("(list %s)", strings.Join(xs, " "))
+		}
+		var body string
+		if len(n.Body) == 0 {
+			body = "(list)"
+		} else {
+			xs := make([]string, len(n.Body))
+			for i, p := range n.Body {
+				xs[i] = `"` + escape(c.compileExpr(p), "\n\t\r") + `"`
+			}
+			body = fmt.Sprintf("(list %s)", strings.Join(xs, " "))
+		}
+		return fmt.Sprintf(`(heredoc %s "%s" %s)`, flags, n.EndMarker, body)
 	case *ast.ParenExpr:
 		return c.compileExpr(n.X)
 	}
@@ -450,7 +496,16 @@ func escape(s string, chars string) string {
 	r := ""
 	for _, c := range s {
 		if strings.IndexRune(chars, c) != -1 {
-			r += `\` + string(c)
+			switch c {
+			case '\n':
+				r += `\n`
+			case '\t':
+				r += `\t`
+			case '\r':
+				r += `\r`
+			default:
+				r += `\` + string(c)
+			}
 		} else {
 			r += string(c)
 		}

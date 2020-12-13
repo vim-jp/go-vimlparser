@@ -65,6 +65,7 @@ type Function struct {
 	Body        []Statement  // function body
 	Name        Expr         // function name
 	Params      []*Ident     // parameters
+	DefaultArgs []Expr       // default arguments
 	Attr        FuncAttr     // function attributes
 	EndFunction *EndFunction // :endfunction
 }
@@ -119,6 +120,7 @@ func (f *ExCall) Pos() Pos { return f.ExCall }
 func (f *ExCall) Cmd() Cmd { return *f.ExArg.Cmd }
 
 // vimlparser: LET .ea .op .left .list .rest .right
+// vimlparser: CONST .ea .op .left .list .rest .right
 type Let struct {
 	Let   Pos    // position of starting the :let
 	ExArg ExArg  // Ex command arg
@@ -341,6 +343,17 @@ type Throw struct {
 func (f *Throw) Pos() Pos { return f.Throw }
 func (f *Throw) Cmd() Cmd { return *f.ExArg.Cmd }
 
+// vimlparser: EVAL .ea .left
+// :eval {Expr}
+type Eval struct {
+	Eval  Pos   // position of starting the :eval
+	ExArg ExArg // Ex command arg
+	Expr  Expr
+}
+
+func (f *Eval) Pos() Pos { return f.Eval }
+func (f *Eval) Cmd() Cmd { return *f.ExArg.Cmd }
+
 // vimlparser: ECHO .ea .list
 // vimlparser: ECHON .ea .list
 // vimlparser: ECHOMSG .ea .list
@@ -425,6 +438,16 @@ type SliceExpr struct {
 }
 
 func (f *SliceExpr) Pos() Pos { return f.Lbrack }
+
+// vimlparser: METHOD .left .right
+type MethodExpr struct {
+	Left   Expr   // this object
+	Method Expr   // method
+	Lparen Pos    // position of "("
+	Args   []Expr // function arguments; or nil
+}
+
+func (c *MethodExpr) Pos() Pos { return c.Lparen }
 
 // vimlparser: CALL .left .rlist
 type CallExpr struct {
@@ -516,7 +539,7 @@ type Ident struct {
 func (i *Ident) Pos() Pos { return i.NamePos }
 
 // LambdaExpr node represents lambda.
-// vimlparsr: LAMBDA .rlist .left
+// vimlparser: LAMBDA .rlist .left
 // { Params -> Expr }
 type LambdaExpr struct {
 	Lcurlybrace Pos      // position of "{"
@@ -527,13 +550,24 @@ type LambdaExpr struct {
 func (i *LambdaExpr) Pos() Pos { return i.Lcurlybrace }
 
 // ParenExpr node represents a parenthesized expression.
-// vimlparsr: PARENEXPR .value
+// vimlparser: PARENEXPR .value
 type ParenExpr struct {
 	Lparen Pos  // position of "("
 	X      Expr // parenthesized expression
 }
 
 func (i *ParenExpr) Pos() Pos { return i.Lparen }
+
+// HeredocExpr node represents a heredoc expression.
+// vimlparser: HEREDOC .rlist .op .body
+type HeredocExpr struct {
+	OpPos     Pos    // position of "=<<"
+	Flags     []Expr // modifiers [trim]; or nil
+	EndMarker string // {endmarker}
+	Body      []Expr // body
+}
+
+func (i *HeredocExpr) Pos() Pos { return i.OpPos }
 
 // stmtNode() ensures that only ExComamnd and Comment nodes can be assigned to
 // an Statement.
@@ -562,6 +596,7 @@ func (*Let) stmtNode()        {}
 func (*LockVar) stmtNode()    {}
 func (*Return) stmtNode()     {}
 func (*Throw) stmtNode()      {}
+func (*Eval) stmtNode()       {}
 func (*Try) stmtNode()        {}
 func (*UnLet) stmtNode()      {}
 func (*UnLockVar) stmtNode()  {}
@@ -576,6 +611,7 @@ func (*BinaryExpr) exprNode()    {}
 func (*UnaryExpr) exprNode()     {}
 func (*SubscriptExpr) exprNode() {}
 func (*SliceExpr) exprNode()     {}
+func (*MethodExpr) exprNode()    {}
 func (*CallExpr) exprNode()      {}
 func (*DotExpr) exprNode()       {}
 func (*BasicLit) exprNode()      {}
@@ -587,3 +623,4 @@ func (*CurlyNameExpr) exprNode() {}
 func (*Ident) exprNode()         {}
 func (*LambdaExpr) exprNode()    {}
 func (*ParenExpr) exprNode()     {}
+func (*HeredocExpr) exprNode()   {}

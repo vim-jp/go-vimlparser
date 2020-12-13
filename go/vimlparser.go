@@ -95,7 +95,12 @@ var NODE_REG = 89
 var NODE_CURLYNAMEPART = 90
 var NODE_CURLYNAMEEXPR = 91
 var NODE_LAMBDA = 92
-var NODE_PARENEXPR = 93
+var NODE_BLOB = 93
+var NODE_CONST = 94
+var NODE_EVAL = 95
+var NODE_HEREDOC = 96
+var NODE_METHOD = 97
+var NODE_PARENEXPR = 200
 var TOKEN_EOF = 1
 var TOKEN_EOL = 2
 var TOKEN_SPACE = 3
@@ -161,6 +166,10 @@ var TOKEN_BACKTICK = 62
 var TOKEN_DOTDOTDOT = 63
 var TOKEN_SHARP = 64
 var TOKEN_ARROW = 65
+var TOKEN_BLOB = 66
+var TOKEN_LITCOPEN = 67
+var TOKEN_DOTDOT = 68
+var TOKEN_HEREDOC = 69
 var MAX_FUNC_ARGS = 20
 
 func isalpha(c string) bool {
@@ -233,6 +242,7 @@ func islower(c string) bool {
 //   node    rest
 //   node[]  list
 //   node[]  rlist
+//   node[]  default_args
 //   node[]  body
 //   string  op
 //   string  str
@@ -242,12 +252,13 @@ func islower(c string) bool {
 // TOPLEVEL .body
 // COMMENT .str
 // EXCMD .ea .str
-// FUNCTION .ea .body .left .rlist .attr .endfunction
+// FUNCTION .ea .body .left .rlist .default_args .attr .endfunction
 // ENDFUNCTION .ea
 // DELFUNCTION .ea .left
 // RETURN .ea .left
 // EXCALL .ea .left
 // LET .ea .op .left .list .rest .right
+// CONST .ea .op .left .list .rest .right
 // UNLET .ea .list
 // LOCKVAR .ea .depth .list
 // UNLOCKVAR .ea .depth .list
@@ -266,6 +277,7 @@ func islower(c string) bool {
 // FINALLY .ea .body
 // ENDTRY .ea
 // THROW .ea .left
+// EVAL .ea .left
 // ECHO .ea .list
 // ECHON .ea .list
 // ECHOHL .ea .str
@@ -316,12 +328,14 @@ func islower(c string) bool {
 // PLUS .left
 // SUBSCRIPT .left .right
 // SLICE .left .rlist
+// METHOD .left .right
 // CALL .left .rlist
 // DOT .left .right
 // NUMBER .value
 // STRING .value
 // LIST .value
 // DICT .value
+// BLOB .value
 // NESTING .left
 // OPTION .value
 // IDENTIFIER .value
@@ -331,6 +345,7 @@ func islower(c string) bool {
 // CURLYNAMEPART .value
 // CURLYNAMEEXPR .value
 // LAMBDA .rlist .left
+// HEREDOC .rlist .op .body
 // PARENEXPR .value
 func (self *VimLParser) find_context(type_ int) int {
 	var i = 0
@@ -380,6 +395,7 @@ func (self *VimLParser) check_missing_endfor(ends string, pos *pos) {
 func (self *VimLParser) parse(reader *StringReader) *VimNode {
 	self.reader = reader
 	var toplevel = Node(NODE_TOPLEVEL)
+	toplevel.pos = self.reader.getpos()
 	self.push_context(toplevel)
 	for self.reader.peek() != "<EOF>" {
 		self.parse_one_cmd()
@@ -458,7 +474,7 @@ func (self *VimLParser) parse_command_modifiers() {
 			// keepp\%[atterns]
 			modifiers = append(modifiers, map[string]interface{}{"name": "keeppatterns"})
 		} else if viml_stridx("hide", k) == 0 && len(k) >= 3 {
-			//hid\%[e]
+			// hid\%[e]
 			if self.ends_excmds(c) {
 				break
 			}
@@ -476,7 +492,7 @@ func (self *VimLParser) parse_command_modifiers() {
 			// :nos\%[wapfile]
 			modifiers = append(modifiers, map[string]interface{}{"name": "noswapfile"})
 		} else if viml_stridx("rightbelow", k) == 0 && len(k) >= 6 {
-			//rightb\%[elow]
+			// rightb\%[elow]
 			modifiers = append(modifiers, map[string]interface{}{"name": "rightbelow"})
 		} else if viml_stridx("sandbox", k) == 0 && len(k) >= 3 {
 			// san\%[dbox]
@@ -690,6 +706,7 @@ func (self *VimLParser) parse_command() {
 	self._parse_command(self.ea.cmd.parser)
 }
 
+// TODO: self[a:parser]
 func (self *VimLParser) _parse_command(parser string) {
 	if parser == "parse_cmd_append" {
 		self.parse_cmd_append()
@@ -745,6 +762,8 @@ func (self *VimLParser) _parse_command(parser string) {
 		self.parse_cmd_insert()
 	} else if parser == "parse_cmd_let" {
 		self.parse_cmd_let()
+	} else if parser == "parse_cmd_const" {
+		self.parse_cmd_const()
 	} else if parser == "parse_cmd_loadkeymap" {
 		self.parse_cmd_loadkeymap()
 	} else if parser == "parse_cmd_lockvar" {
@@ -769,6 +788,8 @@ func (self *VimLParser) _parse_command(parser string) {
 		self.parse_cmd_tcl()
 	} else if parser == "parse_cmd_throw" {
 		self.parse_cmd_throw()
+	} else if parser == "parse_cmd_eval" {
+		self.parse_cmd_eval()
 	} else if parser == "parse_cmd_try" {
 		self.parse_cmd_try()
 	} else if parser == "parse_cmd_unlet" {
@@ -1199,7 +1220,7 @@ func (self *VimLParser) parse_cmd_function() {
 	if left.type_ == NODE_IDENTIFIER {
 		var s = left.value.(string)
 		var ss = viml_split(s, "\\zs")
-		if ss[0] != "<" && !isupper(ss[0]) && viml_stridx(s, ":") == -1 && viml_stridx(s, "#") == -1 {
+		if ss[0] != "<" && ss[0] != "_" && !isupper(ss[0]) && viml_stridx(s, ":") == -1 && viml_stridx(s, "#") == -1 {
 			panic(Err(viml_printf("E128: Function name must start with a capital or contain a colon: %s", s), left.pos))
 		}
 	}
@@ -1214,6 +1235,8 @@ func (self *VimLParser) parse_cmd_function() {
 	node.pos = self.ea.cmdpos
 	node.ea = self.ea
 	node.left = left
+	node.rlist = []*VimNode{}
+	node.default_args = []*VimNode{}
 	self.reader.getn(1)
 	var tokenizer = NewExprTokenizer(self.reader)
 	if tokenizer.peek().type_ == TOKEN_PCLOSE {
@@ -1233,6 +1256,12 @@ func (self *VimLParser) parse_cmd_function() {
 				varnode.pos = token.pos
 				varnode.value = token.value
 				node.rlist = append(node.rlist, varnode)
+				if tokenizer.peek().type_ == TOKEN_EQ {
+					tokenizer.get()
+					node.default_args = append(node.default_args, self.parse_expr())
+				} else if len(node.default_args) > 0 {
+					panic(Err("E989: Non-default argument follows default argument", varnode.pos))
+				}
 				// XXX: Vim doesn't skip white space before comma.  F(a ,b) => E475
 				if iswhite(self.reader.p(0)) && tokenizer.peek().type_ == TOKEN_COMMA {
 					panic(Err("E475: Invalid argument: White space is not allowed before comma", self.reader.getpos()))
@@ -1342,6 +1371,50 @@ func (self *VimLParser) parse_cmd_call() {
 	self.add_node(node)
 }
 
+func (self *VimLParser) parse_heredoc() *VimNode {
+	var node = Node(NODE_HEREDOC)
+	node.pos = self.ea.cmdpos
+	node.op = ""
+	node.rlist = []*VimNode{}
+	for true {
+		self.reader.skip_white()
+		var pos = self.reader.getpos()
+		var key = self.reader.read_word()
+		if key == "" {
+			break
+		}
+		if !islower(key[:1]) {
+			node.op = key
+			break
+		} else {
+			var keynode = Node(NODE_STRING)
+			keynode.pos = pos
+			keynode.value = key
+			node.rlist = append(node.rlist, keynode)
+		}
+	}
+	if node.op == "" {
+		panic(Err("E172: Missing marker", self.reader.getpos()))
+	}
+	self.parse_trail()
+	for true {
+		if self.reader.peek() == "<EOF>" {
+			break
+		}
+		var pos = self.reader.getpos()
+		var line = self.reader.getn(-1)
+		if line == node.op {
+			return node
+		}
+		var linenode = Node(NODE_STRING)
+		linenode.pos = pos
+		linenode.value = line
+		node.body = append(node.body, linenode)
+		self.reader.get()
+	}
+	panic(Err(viml_printf("E990: Missing end marker '%s'", node.op), self.reader.getpos()))
+}
+
 func (self *VimLParser) parse_cmd_let() {
 	var pos = self.reader.tell()
 	self.reader.skip_white()
@@ -1355,8 +1428,14 @@ func (self *VimLParser) parse_cmd_let() {
 	self.reader.skip_white()
 	var s1 = self.reader.peekn(1)
 	var s2 = self.reader.peekn(2)
+	// TODO check scriptversion?
+	if s2 == ".." {
+		s2 = self.reader.peekn(3)
+	} else if s2 == "=<" {
+		s2 = self.reader.peekn(3)
+	}
 	// :let {var-name} ..
-	if self.ends_excmds(s1) || (s2 != "+=" && s2 != "-=" && s2 != ".=" && s1 != "=") {
+	if self.ends_excmds(s1) || (s2 != "+=" && s2 != "-=" && s2 != ".=" && s2 != "..=" && s2 != "*=" && s2 != "/=" && s2 != "%=" && s2 != "=<<" && s1 != "=") {
 		self.reader.seek_set(pos)
 		self.parse_cmd_common()
 		return
@@ -1370,15 +1449,53 @@ func (self *VimLParser) parse_cmd_let() {
 	node.list = lhs.list
 	node.rest = lhs.rest
 	node.right = nil
-	if s2 == "+=" || s2 == "-=" || s2 == ".=" {
-		self.reader.getn(2)
+	if s2 == "+=" || s2 == "-=" || s2 == ".=" || s2 == "..=" || s2 == "*=" || s2 == "/=" || s2 == "%=" {
+		self.reader.getn(len(s2))
 		node.op = s2
+	} else if s2 == "=<<" {
+		self.reader.getn(len(s2))
+		self.reader.skip_white()
+		node.op = s2
+		node.right = self.parse_heredoc()
+		self.add_node(node)
+		return
 	} else if s1 == "=" {
 		self.reader.getn(1)
 		node.op = s1
 	} else {
 		panic("NOT REACHED")
 	}
+	node.right = self.parse_expr()
+	self.add_node(node)
+}
+
+func (self *VimLParser) parse_cmd_const() {
+	var pos = self.reader.tell()
+	self.reader.skip_white()
+	// :const
+	if self.ends_excmds(self.reader.peek()) {
+		self.reader.seek_set(pos)
+		self.parse_cmd_common()
+		return
+	}
+	var lhs = self.parse_constlhs()
+	self.reader.skip_white()
+	var s1 = self.reader.peekn(1)
+	// :const {var-name}
+	if self.ends_excmds(s1) || s1 != "=" {
+		self.reader.seek_set(pos)
+		self.parse_cmd_common()
+		return
+	}
+	// :const left op right
+	var node = Node(NODE_CONST)
+	node.pos = self.ea.cmdpos
+	node.ea = self.ea
+	self.reader.getn(1)
+	node.op = s1
+	node.left = lhs.left
+	node.list = lhs.list
+	node.rest = lhs.rest
 	node.right = self.parse_expr()
 	self.add_node(node)
 }
@@ -1395,6 +1512,8 @@ func (self *VimLParser) parse_cmd_lockvar() {
 	var node = Node(NODE_LOCKVAR)
 	node.pos = self.ea.cmdpos
 	node.ea = self.ea
+	node.depth = 0
+	node.list = []*VimNode{}
 	self.reader.skip_white()
 	if isdigit(self.reader.peekn(1)) {
 		node.depth = viml_str2nr(self.reader.read_digit(), 10)
@@ -1407,6 +1526,8 @@ func (self *VimLParser) parse_cmd_unlockvar() {
 	var node = Node(NODE_UNLOCKVAR)
 	node.pos = self.ea.cmdpos
 	node.ea = self.ea
+	node.depth = 0
+	node.list = []*VimNode{}
 	self.reader.skip_white()
 	if isdigit(self.reader.peekn(1)) {
 		node.depth = viml_str2nr(self.reader.read_digit(), 10)
@@ -1603,6 +1724,14 @@ func (self *VimLParser) parse_cmd_throw() {
 	self.add_node(node)
 }
 
+func (self *VimLParser) parse_cmd_eval() {
+	var node = Node(NODE_EVAL)
+	node.pos = self.ea.cmdpos
+	node.ea = self.ea
+	node.left = self.parse_expr()
+	self.add_node(node)
+}
+
 func (self *VimLParser) parse_cmd_echo() {
 	var node = Node(NODE_ECHO)
 	node.pos = self.ea.cmdpos
@@ -1696,6 +1825,29 @@ func (self *VimLParser) parse_lvalue() *VimNode {
 	panic(Err("Invalid Expression", node.pos))
 }
 
+// TODO: merge with s:VimLParser.parse_lvalue()
+func (self *VimLParser) parse_constlvalue() *VimNode {
+	var p = NewLvalueParser(self.reader)
+	var node = p.parse()
+	if node.type_ == NODE_IDENTIFIER {
+		if !isvarname(node.value.(string)) {
+			panic(Err(viml_printf("E461: Illegal variable name: %s", node.value), node.pos))
+		}
+	}
+	if node.type_ == NODE_IDENTIFIER || node.type_ == NODE_CURLYNAME {
+		return node
+	} else if node.type_ == NODE_SUBSCRIPT || node.type_ == NODE_SLICE || node.type_ == NODE_DOT {
+		panic(Err("E996: Cannot lock a list or dict", node.pos))
+	} else if node.type_ == NODE_OPTION {
+		panic(Err("E996: Cannot lock an option", node.pos))
+	} else if node.type_ == NODE_ENV {
+		panic(Err("E996: Cannot lock an environment variable", node.pos))
+	} else if node.type_ == NODE_REG {
+		panic(Err("E996: Cannot lock a register", node.pos))
+	}
+	panic(Err("Invalid Expression", node.pos))
+}
+
 func (self *VimLParser) parse_lvaluelist() []*VimNode {
 	var list []*VimNode
 	var node = self.parse_expr()
@@ -1740,6 +1892,39 @@ func (self *VimLParser) parse_letlhs() *lhs {
 		}
 	} else {
 		lhs.left = self.parse_lvalue()
+	}
+	return lhs
+}
+
+// TODO: merge with s:VimLParser.parse_letlhs() ?
+func (self *VimLParser) parse_constlhs() *lhs {
+	var lhs = &lhs{}
+	var tokenizer = NewExprTokenizer(self.reader)
+	if tokenizer.peek().type_ == TOKEN_SQOPEN {
+		tokenizer.get()
+		for true {
+			var node = self.parse_lvalue()
+			lhs.list = append(lhs.list, node)
+			var token = tokenizer.get()
+			if token.type_ == TOKEN_SQCLOSE {
+				break
+			} else if token.type_ == TOKEN_COMMA {
+				continue
+			} else if token.type_ == TOKEN_SEMICOLON {
+				node = self.parse_lvalue()
+				lhs.rest = node
+				token = tokenizer.get()
+				if token.type_ == TOKEN_SQCLOSE {
+					break
+				} else {
+					panic(Err(viml_printf("E475 Invalid argument: %s", token.value), token.pos))
+				}
+			} else {
+				panic(Err(viml_printf("E475 Invalid argument: %s", token.value), token.pos))
+			}
+		}
+	} else {
+		lhs.left = self.parse_constlvalue()
 	}
 	return lhs
 }
@@ -1798,6 +1983,8 @@ func (self *VimLParser) parse_cmd_syntax() {
 
 // To find new builtin_commands, run the below script.
 // $ scripts/update_builtin_commands.sh /path/to/vim/src/ex_cmds.h
+// To find new builtin_functions, run the below script.
+// $ scripts/update_builtin_functions.sh /path/to/vim/src/evalfunc.c
 func (self *ExprTokenizer) __init__(reader *StringReader) {
 	self.reader = reader
 }
@@ -1839,6 +2026,14 @@ func (self *ExprTokenizer) get2() *ExprToken {
 		var s = r.getn(3)
 		s += r.read_xdigit()
 		return self.token(TOKEN_NUMBER, s, pos)
+	} else if c == "0" && (r.p(1) == "B" || r.p(1) == "b") && (r.p(2) == "0" || r.p(2) == "1") {
+		var s = r.getn(3)
+		s += r.read_bdigit()
+		return self.token(TOKEN_NUMBER, s, pos)
+	} else if c == "0" && (r.p(1) == "Z" || r.p(1) == "z") && r.p(2) != "." {
+		var s = r.getn(2)
+		s += r.read_blob()
+		return self.token(TOKEN_BLOB, s, pos)
 	} else if isdigit(c) {
 		var s = r.read_digit()
 		if r.p(0) == "." && isdigit(r.p(1)) {
@@ -1984,9 +2179,14 @@ func (self *ExprTokenizer) get2() *ExprToken {
 		if r.p(1) == "." && r.p(2) == "." {
 			r.seek_cur(3)
 			return self.token(TOKEN_DOTDOTDOT, "...", pos)
+		} else if r.p(1) == "." {
+			r.seek_cur(2)
+			return self.token(TOKEN_DOTDOT, "..", pos)
+			// TODO check scriptversion?
 		} else {
 			r.seek_cur(1)
 			return self.token(TOKEN_DOT, ".", pos)
+			// TODO check scriptversion?
 		}
 	} else if c == "*" {
 		r.seek_cur(1)
@@ -2007,8 +2207,13 @@ func (self *ExprTokenizer) get2() *ExprToken {
 		r.seek_cur(1)
 		return self.token(TOKEN_COLON, ":", pos)
 	} else if c == "#" {
-		r.seek_cur(1)
-		return self.token(TOKEN_SHARP, "#", pos)
+		if r.p(1) == "{" {
+			r.seek_cur(2)
+			return self.token(TOKEN_LITCOPEN, "#{", pos)
+		} else {
+			r.seek_cur(1)
+			return self.token(TOKEN_SHARP, "#", pos)
+		}
 	} else if c == "(" {
 		r.seek_cur(1)
 		return self.token(TOKEN_POPEN, "(", pos)
@@ -2126,6 +2331,31 @@ func (self *ExprTokenizer) get_dstring() string {
 		}
 	}
 	return s
+}
+
+func (self *ExprTokenizer) parse_dict_literal_key() *VimNode {
+	self.reader.skip_white()
+	var c = self.reader.peek()
+	if !isalnum(c) && c != "_" && c != "-" {
+		panic(Err(viml_printf("unexpected character: %s", c), self.reader.getpos()))
+	}
+	var node = Node(NODE_STRING)
+	var s = c
+	self.reader.seek_cur(1)
+	node.pos = self.reader.getpos()
+	for true {
+		c = self.reader.p(0)
+		if c == "<EOF>" || c == "<EOL>" {
+			panic(Err("unexpectd EOL", self.reader.getpos()))
+		}
+		if !isalnum(c) && c != "_" && c != "-" {
+			break
+		}
+		self.reader.seek_cur(1)
+		s += c
+	}
+	node.value = "'" + s + "'"
+	return node
 }
 
 func (self *ExprParser) __init__(reader *StringReader) {
@@ -2407,6 +2637,7 @@ func (self *ExprParser) parse_expr4() *VimNode {
 // expr5: expr6 + expr6 ..
 //        expr6 - expr6 ..
 //        expr6 . expr6 ..
+//        expr6 .. expr6 ..
 func (self *ExprParser) parse_expr5() *VimNode {
 	var left = self.parse_expr6()
 	for true {
@@ -2424,7 +2655,15 @@ func (self *ExprParser) parse_expr5() *VimNode {
 			node.left = left
 			node.right = self.parse_expr6()
 			left = node
+		} else if token.type_ == TOKEN_DOTDOT {
+			// TODO check scriptversion?
+			var node = Node(NODE_CONCAT)
+			node.pos = token.pos
+			node.left = left
+			node.right = self.parse_expr6()
+			left = node
 		} else if token.type_ == TOKEN_DOT {
+			// TODO check scriptversion?
 			var node = Node(NODE_CONCAT)
 			node.pos = token.pos
 			node.left = left
@@ -2503,6 +2742,9 @@ func (self *ExprParser) parse_expr7() *VimNode {
 // expr8: expr8[expr1]
 //        expr8[expr1 : expr1]
 //        expr8.name
+//        expr8->name(expr1, ...)
+//        expr8->s:user_func(expr1, ...)
+//        expr8->{lambda}(expr1, ...)
 //        expr8(expr1, ...)
 func (self *ExprParser) parse_expr8() *VimNode {
 	var left = self.parse_expr9()
@@ -2556,35 +2798,29 @@ func (self *ExprParser) parse_expr8() *VimNode {
 					left = node
 				}
 			}
+		} else if token.type_ == TOKEN_ARROW {
+			var funcname_or_lambda = self.parse_expr9()
+			token = self.tokenizer.get()
+			if token.type_ != TOKEN_POPEN {
+				panic(Err("E107: Missing parentheses: lambda", token.pos))
+			}
+			var right = Node(NODE_CALL)
+			right.pos = token.pos
+			right.left = funcname_or_lambda
+			right.rlist = self.parse_rlist()
+			var node = Node(NODE_METHOD)
+			node.pos = token.pos
+			node.left = left
+			node.right = right
+			left = node
 		} else if token.type_ == TOKEN_POPEN {
 			var node = Node(NODE_CALL)
 			node.pos = token.pos
 			node.left = left
-			if self.tokenizer.peek().type_ == TOKEN_PCLOSE {
-				self.tokenizer.get()
-			} else {
-				for true {
-					node.rlist = append(node.rlist, self.parse_expr1())
-					token = self.tokenizer.get()
-					if token.type_ == TOKEN_COMMA {
-						// XXX: Vim allows foo(a, b, ).  Lint should warn it.
-						if self.tokenizer.peek().type_ == TOKEN_PCLOSE {
-							self.tokenizer.get()
-							break
-						}
-					} else if token.type_ == TOKEN_PCLOSE {
-						break
-					} else {
-						panic(Err(viml_printf("unexpected token: %s", token.value), token.pos))
-					}
-				}
-			}
-			if len(node.rlist) > MAX_FUNC_ARGS {
-				// TODO: funcname E740: Too many arguments for function: %s
-				panic(Err("E740: Too many arguments for function", node.pos))
-			}
+			node.rlist = self.parse_rlist()
 			left = node
 		} else if !iswhite(c) && token.type_ == TOKEN_DOT {
+			// TODO check scriptversion?
 			var node = self.parse_dot(token, left)
 			if node == nil {
 				self.reader.seek_set(pos)
@@ -2599,11 +2835,41 @@ func (self *ExprParser) parse_expr8() *VimNode {
 	return left
 }
 
+func (self *ExprParser) parse_rlist() []*VimNode {
+	var rlist []*VimNode
+	var token = self.tokenizer.peek()
+	if self.tokenizer.peek().type_ == TOKEN_PCLOSE {
+		self.tokenizer.get()
+	} else {
+		for true {
+			rlist = append(rlist, self.parse_expr1())
+			token = self.tokenizer.get()
+			if token.type_ == TOKEN_COMMA {
+				// XXX: Vim allows foo(a, b, ).  Lint should warn it.
+				if self.tokenizer.peek().type_ == TOKEN_PCLOSE {
+					self.tokenizer.get()
+					break
+				}
+			} else if token.type_ == TOKEN_PCLOSE {
+				break
+			} else {
+				panic(Err(viml_printf("unexpected token: %s", token.value), token.pos))
+			}
+		}
+	}
+	if len(rlist) > MAX_FUNC_ARGS {
+		// TODO: funcname E740: Too many arguments for function: %s
+		panic(Err("E740: Too many arguments for function", token.pos))
+	}
+	return rlist
+}
+
 // expr9: number
 //        "string"
 //        'string'
 //        [expr1, ...]
 //        {expr1: expr1, ...}
+//        #{literal_key1: expr1, ...}
 //        {args -> expr1}
 //        &option
 //        (expr1)
@@ -2619,6 +2885,10 @@ func (self *ExprParser) parse_expr9() *VimNode {
 	var node = Node(-1)
 	if token.type_ == TOKEN_NUMBER {
 		node = Node(NODE_NUMBER)
+		node.pos = token.pos
+		node.value = token.value
+	} else if token.type_ == TOKEN_BLOB {
+		node = Node(NODE_BLOB)
 		node.pos = token.pos
 		node.value = token.value
 	} else if token.type_ == TOKEN_DQUOTE {
@@ -2656,7 +2926,8 @@ func (self *ExprParser) parse_expr9() *VimNode {
 				}
 			}
 		}
-	} else if token.type_ == TOKEN_COPEN {
+	} else if token.type_ == TOKEN_COPEN || token.type_ == TOKEN_LITCOPEN {
+		var is_litdict = token.type_ == TOKEN_LITCOPEN
 		var savepos = self.reader.tell()
 		var nodepos = token.pos
 		token = self.tokenizer.get()
@@ -2673,6 +2944,7 @@ func (self *ExprParser) parse_expr9() *VimNode {
 			// lambda {token,...} {->...} {token->...}
 			node = Node(NODE_LAMBDA)
 			node.pos = nodepos
+			node.rlist = []*VimNode{}
 			var named = map[string]interface{}{}
 			for true {
 				if token.type_ == TOKEN_ARROW {
@@ -2743,7 +3015,13 @@ func (self *ExprParser) parse_expr9() *VimNode {
 			return node
 		}
 		for {
-			var key = self.parse_expr1()
+			var key = func() *VimNode {
+				if is_litdict {
+					return self.tokenizer.parse_dict_literal_key()
+				} else {
+					return self.parse_expr1()
+				}
+			}()
 			token = self.tokenizer.get()
 			if token.type_ == TOKEN_CCLOSE {
 				if !viml_empty(node.value) {
@@ -2828,6 +3106,31 @@ func (self *ExprParser) parse_dot(token *ExprToken, left *VimNode) *VimNode {
 		return nil
 	}
 	var node = Node(NODE_DOT)
+	node.pos = token.pos
+	node.left = left
+	node.right = Node(NODE_IDENTIFIER)
+	node.right.pos = pos
+	node.right.value = name
+	return node
+}
+
+// CONCAT
+//   str  ".." expr6         => (concat str expr6)
+func (self *ExprParser) parse_concat(token *ExprToken, left *VimNode) *VimNode {
+	if left.type_ != NODE_IDENTIFIER && left.type_ != NODE_CURLYNAME && left.type_ != NODE_DICT && left.type_ != NODE_SUBSCRIPT && left.type_ != NODE_CALL && left.type_ != NODE_DOT {
+		return nil
+	}
+	if !iswordc(self.reader.p(0)) {
+		return nil
+	}
+	var pos = self.reader.getpos()
+	var name = self.reader.read_word()
+	if isnamec(self.reader.p(0)) {
+		// XXX: foo is str => ok, foo is obj => invalid expression
+		// foo.s:bar or foo.bar#baz
+		return nil
+	}
+	var node = Node(NODE_CONCAT)
 	node.pos = token.pos
 	node.left = left
 	node.right = Node(NODE_IDENTIFIER)
@@ -3134,9 +3437,34 @@ func (self *StringReader) read_odigit() string {
 	return r
 }
 
+func (self *StringReader) read_blob() string {
+	var r = ""
+	for {
+		var s = self.peekn(2)
+		if viml_eqregh(s, "^[0-9A-Fa-f][0-9A-Fa-f]$") {
+			r += self.getn(2)
+		} else if viml_eqregh(s, "^\\.[0-9A-Fa-f]$") {
+			r += self.getn(1)
+		} else if viml_eqregh(s, "^[0-9A-Fa-f][^0-9A-Fa-f]$") {
+			panic(Err("E973: Blob literal should have an even number of hex characters:"+s, self.getpos()))
+		} else {
+			break
+		}
+	}
+	return r
+}
+
 func (self *StringReader) read_xdigit() string {
 	var r = ""
 	for isxdigit(self.peekn(1)) {
+		r += self.getn(1)
+	}
+	return r
+}
+
+func (self *StringReader) read_bdigit() string {
+	var r = ""
+	for self.peekn(1) == "0" || self.peekn(1) == "1" {
 		r += self.getn(1)
 	}
 	return r
@@ -3169,8 +3497,10 @@ func (self *StringReader) read_white() string {
 
 func (self *StringReader) read_nonwhite() string {
 	var r = ""
-	for !iswhite(self.peekn(1)) {
+	var ch = self.peekn(1)
+	for !iswhite(ch) && ch != "" {
 		r += self.getn(1)
+		ch = self.peekn(1)
 	}
 	return r
 }
@@ -3220,8 +3550,14 @@ func (self *Compiler) compile(node *VimNode) interface{} {
 	} else if node.type_ == NODE_EXCALL {
 		self.compile_excall(node)
 		return nil
+	} else if node.type_ == NODE_EVAL {
+		self.compile_eval(node)
+		return nil
 	} else if node.type_ == NODE_LET {
 		self.compile_let(node)
+		return nil
+	} else if node.type_ == NODE_CONST {
+		self.compile_const(node)
 		return nil
 	} else if node.type_ == NODE_UNLET {
 		self.compile_unlet(node)
@@ -3361,10 +3697,14 @@ func (self *Compiler) compile(node *VimNode) interface{} {
 		return self.compile_slice(node)
 	} else if node.type_ == NODE_DOT {
 		return self.compile_dot(node)
+	} else if node.type_ == NODE_METHOD {
+		return self.compile_method(node)
 	} else if node.type_ == NODE_CALL {
 		return self.compile_call(node)
 	} else if node.type_ == NODE_NUMBER {
 		return self.compile_number(node)
+	} else if node.type_ == NODE_BLOB {
+		return self.compile_blob(node)
 	} else if node.type_ == NODE_STRING {
 		return self.compile_string(node)
 	} else if node.type_ == NODE_LIST {
@@ -3387,6 +3727,8 @@ func (self *Compiler) compile(node *VimNode) interface{} {
 		return self.compile_curlynameexpr(node)
 	} else if node.type_ == NODE_LAMBDA {
 		return self.compile_lambda(node)
+	} else if node.type_ == NODE_HEREDOC {
+		return self.compile_heredoc(node)
 	} else if node.type_ == NODE_PARENEXPR {
 		return self.compile_parenexpr(node)
 	} else {
@@ -3423,14 +3765,31 @@ func (self *Compiler) compile_function(node *VimNode) {
 		}
 		return ss
 	}()
-	if !viml_empty(rlist) && rlist[len(rlist)-1] == "..." {
-		rlist[len(rlist)-1] = ". ..."
+	var default_args = func() []string {
+		var ss []string
+		for _, vval := range node.default_args {
+			ss = append(ss, self.compile(vval).(string))
+		}
+		return ss
+	}()
+	if !viml_empty(rlist) {
+		var remaining = false
+		if rlist[len(rlist)-1] == "..." {
+			rlist = rlist[:len(rlist)-1]
+			remaining = true
+		}
+		for _, i := range viml_range(0, len(rlist)-1) {
+			if i < len(rlist)-len(default_args) {
+				left += viml_printf(" %s", rlist[i])
+			} else {
+				left += viml_printf(" (%s %s)", rlist[i], default_args[i+len(default_args)-len(rlist)])
+			}
+		}
+		if remaining {
+			left += " . ..."
+		}
 	}
-	if viml_empty(rlist) {
-		self.out("(function (%s)", left)
-	} else {
-		self.out("(function (%s %s)", left, viml_join(rlist, " "))
-	}
+	self.out("(function (%s)", left)
 	self.incindent("  ")
 	self.compile_body(node.body)
 	self.out(")")
@@ -3453,6 +3812,10 @@ func (self *Compiler) compile_excall(node *VimNode) {
 	self.out("(call %s)", self.compile(node.left).(string))
 }
 
+func (self *Compiler) compile_eval(node *VimNode) {
+	self.out("(eval %s)", self.compile(node.left).(string))
+}
+
 func (self *Compiler) compile_let(node *VimNode) {
 	var left = ""
 	if node.left != nil {
@@ -3472,6 +3835,28 @@ func (self *Compiler) compile_let(node *VimNode) {
 	}
 	var right = self.compile(node.right)
 	self.out("(let %s %s %s)", node.op, left, right)
+}
+
+// TODO: merge with s:Compiler.compile_let() ?
+func (self *Compiler) compile_const(node *VimNode) {
+	var left = ""
+	if node.left != nil {
+		left = self.compile(node.left).(string)
+	} else {
+		left = viml_join(func() []string {
+			var ss []string
+			for _, vval := range node.list {
+				ss = append(ss, self.compile(vval).(string))
+			}
+			return ss
+		}(), " ")
+		if node.rest != nil {
+			left += " . " + self.compile(node.rest).(string)
+		}
+		left = "(" + left + ")"
+	}
+	var right = self.compile(node.right)
+	self.out("(const %s %s %s)", node.op, left, right)
 }
 
 func (self *Compiler) compile_unlet(node *VimNode) {
@@ -3862,6 +4247,10 @@ func (self *Compiler) compile_dot(node *VimNode) string {
 	return viml_printf("(dot %s %s)", self.compile(node.left).(string), self.compile(node.right))
 }
 
+func (self *Compiler) compile_method(node *VimNode) string {
+	return viml_printf("(method %s %s)", self.compile(node.left).(string), self.compile(node.right))
+}
+
 func (self *Compiler) compile_call(node *VimNode) string {
 	var rlist = func() []string {
 		var ss []string
@@ -3878,6 +4267,10 @@ func (self *Compiler) compile_call(node *VimNode) string {
 }
 
 func (self *Compiler) compile_number(node *VimNode) string {
+	return node.value.(string)
+}
+
+func (self *Compiler) compile_blob(node *VimNode) string {
 	return node.value.(string)
 }
 
@@ -3905,6 +4298,23 @@ func (self *Compiler) compile_curlynamepart(node *VimNode) string {
 	return node.value.(string)
 }
 
+func (self *Compiler) escape_string(str string) string {
+	var out = "\""
+	for _, c := range viml_split(str, "\\zs") {
+		if c == "\n" {
+			out += "\\n"
+		} else if c == "\t" {
+			out += "\\t"
+		} else if c == "\r" {
+			out += "\\r"
+		} else {
+			out += c
+		}
+	}
+	out += "\""
+	return out
+}
+
 func (self *Compiler) compile_lambda(node *VimNode) string {
 	var rlist = func() []string {
 		var ss []string
@@ -3914,6 +4324,37 @@ func (self *Compiler) compile_lambda(node *VimNode) string {
 		return ss
 	}()
 	return viml_printf("(lambda (%s) %s)", viml_join(rlist, " "), self.compile(node.left).(string))
+}
+
+func (self *Compiler) compile_heredoc(node *VimNode) string {
+	var rlist = func() string {
+		if viml_empty(node.rlist) {
+			return "(list)"
+		} else {
+			return "(list " + viml_join(func() []string {
+				var ss []string
+				for _, vval := range node.rlist {
+					ss = append(ss, self.escape_string(vval.value.(string)))
+				}
+				return ss
+			}(), " ") + ")"
+		}
+	}()
+	var body = func() string {
+		if viml_empty(node.body) {
+			return "(list)"
+		} else {
+			return "(list " + viml_join(func() []string {
+				var ss []string
+				for _, vval := range node.body {
+					ss = append(ss, self.escape_string(vval.value.(string)))
+				}
+				return ss
+			}(), " ") + ")"
+		}
+	}()
+	var op = self.escape_string(node.op)
+	return viml_printf("(heredoc %s %s %s)", rlist, op, body)
 }
 
 // TODO: under construction

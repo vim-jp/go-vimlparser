@@ -63,6 +63,7 @@ const (
 	CCLOSE
 	COMMA
 	NUMBER
+	BLOB
 	SQUOTE
 	DQUOTE
 	OPTION
@@ -134,6 +135,7 @@ var tokens = [...]string{
 	CCLOSE:     "}",
 	COMMA:      ",",
 	NUMBER:     "<NUMBER>",
+	BLOB:       "<BLOB>",
 	SQUOTE:     "'",
 	DQUOTE:     `"`,
 	OPTION:     "<&OPTION>",

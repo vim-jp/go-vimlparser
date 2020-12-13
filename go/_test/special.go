@@ -3,7 +3,8 @@ self.hoge = 1
 self.ea.range_ = 1
 xxx.x = 1
 var z = self.ea.range_
-var xs = viml_range(10)
+var xs = viml_range(0, 10 - 1)
+xs = viml_range(0, 10)
 Node()
 var type_ = 1
 var t = type_
@@ -34,6 +35,9 @@ node.attr.dict = true
 // skip
 // end skip
 // do not skip
+node.rlist = []*VimNode{}
+node.list = []*VimNode{}
+node.depth = 0
 node.list = self.parse_lvaluelist()
 node.depth = hoge
 node.rlist = []*VimNode{nil, nil}
