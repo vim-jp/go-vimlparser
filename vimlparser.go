@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/haya14busa/go-vimlparser/ast"
-	internal "github.com/haya14busa/go-vimlparser/go"
+	"github.com/vim-jp/go-vimlparser/ast"
+	internal "github.com/vim-jp/go-vimlparser/go"
 )
 
 // ErrVimlParser represents VimLParser error.

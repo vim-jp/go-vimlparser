@@ -3,8 +3,8 @@ package printer
 import (
 	"fmt"
 
-	"github.com/haya14busa/go-vimlparser/ast"
-	"github.com/haya14busa/go-vimlparser/token"
+	"github.com/vim-jp/go-vimlparser/ast"
+	"github.com/vim-jp/go-vimlparser/token"
 )
 
 func (p *printer) expr(expr ast.Expr) {

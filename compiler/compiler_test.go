@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/haya14busa/go-vimlparser"
+	"github.com/vim-jp/go-vimlparser"
 )
 
 var skipTests = map[string]bool{

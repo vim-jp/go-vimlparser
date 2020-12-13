@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/haya14busa/go-vimlparser/compiler"
+	"github.com/vim-jp/go-vimlparser/compiler"
 )
 
 func TestParseFile_can_parse(t *testing.T) {
