@@ -1,9 +1,9 @@
 # Vim Script Parser written in Go
 
-[![Build Status](https://travis-ci.org/haya14busa/go-vimlparser.svg?branch=master)](https://travis-ci.org/haya14busa/go-vimlparser)
-[![codecov](https://codecov.io/gh/haya14busa/go-vimlparser/branch/master/graph/badge.svg)](https://codecov.io/gh/haya14busa/go-vimlparser)
-[![Sourcegraph](https://sourcegraph.com/github.com/haya14busa/go-vimlparser/-/badge.svg)](https://sourcegraph.com/github.com/haya14busa/go-vimlparser?badge)
-[![GoDoc](https://godoc.org/github.com/haya14busa/go-vimlparser?status.svg)](https://godoc.org/github.com/haya14busa/go-vimlparser)
+[![Build Status](https://travis-ci.org/vim-jp/go-vimlparser.svg?branch=master)](https://travis-ci.org/vim-jp/go-vimlparser)
+[![codecov](https://codecov.io/gh/vim-jp/go-vimlparser/branch/master/graph/badge.svg)](https://codecov.io/gh/vim-jp/go-vimlparser)
+[![Sourcegraph](https://sourcegraph.com/github.com/vim-jp/go-vimlparser/-/badge.svg)](https://sourcegraph.com/github.com/vim-jp/go-vimlparser?badge)
+[![GoDoc](https://godoc.org/github.com/vim-jp/go-vimlparser?status.svg)](https://godoc.org/github.com/vim-jp/go-vimlparser)
 
 This repository is the fork of https://github.com/ynkdir/vim-vimlparser and it provides Go-ish interface with performance improvement.
 
@@ -15,7 +15,7 @@ This repository is the fork of https://github.com/ynkdir/vim-vimlparser and it p
 
 ```sh
 $ pwd
-/home/haya14busa/src/github.com/ynkdir/vim-vimlparser
+/home/vim-jp/src/github.com/ynkdir/vim-vimlparser
 
 $ git rev-parse HEAD
 2fff43c58968a18bc01bc8304df68bde01af04d9
@@ -45,7 +45,7 @@ v4.2.3
 $ time node js/vimlparser.js autoload/vimlparser.vim > /dev/null
 node js/vimlparser.js autoload/vimlparser.vim > /dev/null  0.77s user 0.04s system 125% cpu 0.644 total
 
-$ go get github.com/haya14busa/go-vimlparser/cmd/vimlparser
+$ go get github.com/vim-jp/go-vimlparser/cmd/vimlparser
 $ time vimlparser autoload/vimlparser.vim > /dev/null
 vimlparser autoload/vimlparser.vim > /dev/null  0.25s user 0.03s system 114% cpu 0.244 total
 ```
@@ -59,25 +59,25 @@ vimlparser autoload/vimlparser.vim > /dev/null  0.25s user 0.03s system 114% cpu
 | node | 0.77s |
 | Go | **0.25s** |
 
-Note that, in addition to the Go lang speed, I added [performance improvement](https://github.com/haya14busa/go-vimlparser/pull/4) for Go implementation.
+Note that, in addition to the Go lang speed, I added [performance improvement](https://github.com/vim-jp/go-vimlparser/pull/4) for Go implementation.
 
 ### Rich interface compared to other implementation
 
 go-vimlparser is written in Go which is typed language and I added Go-ish interface,
-so you can see each node fields. e.g. https://godoc.org/github.com/haya14busa/go-vimlparser/ast#Function
+so you can see each node fields. e.g. https://godoc.org/github.com/vim-jp/go-vimlparser/ast#Function
 
 | package | doc |
 | --- | --- |
-| go-vimlparser | [![GoDoc](https://godoc.org/github.com/haya14busa/go-vimlparser?status.svg)](https://godoc.org/github.com/haya14busa/go-vimlparser) |
-| go-vimlparser/ast | [![GoDoc](https://godoc.org/github.com/haya14busa/go-vimlparser/ast?status.svg)](https://godoc.org/github.com/haya14busa/go-vimlparser/ast) |
-| go-vimlparser/token | [![GoDoc](https://godoc.org/github.com/haya14busa/go-vimlparser/token?status.svg)](https://godoc.org/github.com/haya14busa/go-vimlparser/token) |
+| go-vimlparser | [![GoDoc](https://godoc.org/github.com/vim-jp/go-vimlparser?status.svg)](https://godoc.org/github.com/vim-jp/go-vimlparser) |
+| go-vimlparser/ast | [![GoDoc](https://godoc.org/github.com/vim-jp/go-vimlparser/ast?status.svg)](https://godoc.org/github.com/vim-jp/go-vimlparser/ast) |
+| go-vimlparser/token | [![GoDoc](https://godoc.org/github.com/vim-jp/go-vimlparser/token?status.svg)](https://godoc.org/github.com/vim-jp/go-vimlparser/token) |
 
 ### CLI tool
 
 #### Installation
 
 ```
-go get github.com/haya14busa/go-vimlparser/cmd/vimlparser
+go get github.com/vim-jp/go-vimlparser/cmd/vimlparser
 ```
 
 #### Usage
@@ -129,4 +129,7 @@ augroup END
 [@ynkdir](https://github.com/ynkdir) for https://github.com/ynkdir/vim-vimlparser
 
 ### :bird: Author
-haya14busa (https://github.com/haya14busa)
+
+Original Author: haya14busa (https://github.com/haya14busa)
+
+Maintenance Author: vim-jp

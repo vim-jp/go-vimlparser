@@ -7,8 +7,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/haya14busa/go-vimlparser"
-	"github.com/haya14busa/go-vimlparser/compiler"
+	"github.com/vim-jp/go-vimlparser"
+	"github.com/vim-jp/go-vimlparser/compiler"
 )
 
 var neovim = flag.Bool("neovim", false, "use neovim parser")
