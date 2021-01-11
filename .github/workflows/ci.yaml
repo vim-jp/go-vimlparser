@@ -25,8 +25,12 @@ jobs:
       - name: Install gosumcheck
         run: env GO111MODULE=off go get github.com/haya14busa/gosum/cmd/gosumcheck
       - name: Test
-        run: go test -v -race ./...
+        run: go test -v -race -coverpkg=./... -coverprofile=coverage.txt ./...
       - name: Check code generation diff
         run: bash go/generate.sh && ! git diff | grep '^'
       - name: Check gosumcheck
         run: gosumcheck ./...
+      - name: Report coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          files: ./coverage.txt
