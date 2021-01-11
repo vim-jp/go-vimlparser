@@ -1,6 +1,6 @@
 # Vim Script Parser written in Go
 
-[![Build Status](https://travis-ci.org/vim-jp/go-vimlparser.svg?branch=master)](https://travis-ci.org/vim-jp/go-vimlparser)
+[![CI Status](https://github.com/vim-jp/go-vimlparser/workflows/CI/badge.svg)](https://github.com/vim-jp/go-vimlparser/actions)
 [![codecov](https://codecov.io/gh/vim-jp/go-vimlparser/branch/master/graph/badge.svg)](https://codecov.io/gh/vim-jp/go-vimlparser)
 [![Sourcegraph](https://sourcegraph.com/github.com/vim-jp/go-vimlparser/-/badge.svg)](https://sourcegraph.com/github.com/vim-jp/go-vimlparser?badge)
 [![GoDoc](https://godoc.org/github.com/vim-jp/go-vimlparser?status.svg)](https://godoc.org/github.com/vim-jp/go-vimlparser)
